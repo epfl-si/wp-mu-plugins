@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Jahia redirection updater
  * Description: Update Jahia redirection (if any) in .htaccess file when a page permalink is updated
- * @version: 1.8
+ * @version: 1.9
  * @copyright: Copyright (c) 2019 Ecole Polytechnique Federale de Lausanne, Switzerland
  */
 

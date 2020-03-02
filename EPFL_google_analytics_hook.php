@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Google Analytics connector
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.0
+ * Version: 1.1
  * Author: wwp-admin@epfl.ch
  * */
 

@@ -3,7 +3,7 @@
 * Plugin Name: EPFL Disable Comments
 * Plugin URI:
 * Description: Must-use plugin to disable comments
-* Version: 0.2
+* Version: 0.3
 * Author: Lucien Chaboudez (https://people.epfl.ch/lucien.chaboudez)
  */
 

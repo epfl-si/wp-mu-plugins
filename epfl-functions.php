@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: wwp-admin@epfl.ch
  */
 

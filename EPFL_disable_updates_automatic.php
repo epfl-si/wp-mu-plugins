@@ -3,7 +3,7 @@
  * Plugin Name: EPFL disable all automatic updates.
  * Plugin URI: 
  * Description: Must-use plugin for the EPFL website.
- * Version: 0.0.1
+ * Version: 0.0.2
  * Author: wwp-admin@epfl.ch
  * */
 
