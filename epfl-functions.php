@@ -523,8 +523,10 @@ add_filter('register_post_type_args', __NAMESPACE__ . '\no_content_for_all_pages
 
 # Enlighter plugin show is "About page" everytime an update is done
 # this fix this information that we don't want to show to the user
-add_action('admin_init', function () {
-  delete_option('enlighter-activation-redirect');
-}, 1);
+add_action('added_option', function( $option_name, $option_value ) {
+	if ($option_name === 'enlighter-activation-redirect' && $option_value === 'about-page') {
+        delete_option('enlighter-activation-redirect');
+    }
+}, 10, 2);
 
 ?>
