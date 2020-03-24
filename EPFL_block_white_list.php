@@ -3,7 +3,7 @@
 * Plugin Name: EPFL block white list
 * Plugin URI:
 * Description: Must-use plugin for the EPFL website to define allowed blocks coming from Gutenberg or installed plugins.
-* Version: 1.0.6
+* Version: 1.0.7
 * Author: wwp-admin@epfl.ch
  */
 
@@ -27,7 +27,6 @@ function epfl_allowed_block_types( $allowed_block_types, $post ) {
         'core/gallery',
         'core/classic',
         'core/rss',
-        'core/table',
         'core/shortcode',
         'core/freeform',
         'enlighter/codeblock'
