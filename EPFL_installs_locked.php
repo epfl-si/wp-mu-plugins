@@ -81,9 +81,16 @@ function EPFL_remove_background_header_options() {
 
 /* Hide plugin configuration
  * https://codex.wordpress.org/Plugin_API/Action_Reference/admin_menu
+ * 
+ * To find root menu list, execute the following code. This will allow you to find the real "admin" menu name 
+ * because it's not always the one described in the URL, especially if entries are "under" admin.php in the URL
+ * 
+ * global $menu;
+ * error_log(var_export($menu, true));
  */
 add_action( 'admin_menu', 'EPFL_remove_admin_submenus',999 );
 function EPFL_remove_admin_submenus() {
+
    remove_submenu_page( 'options-general.php', 'options-general.php' );
    remove_submenu_page( 'options-general.php', 'options-permalink.php' );
    remove_submenu_page( 'options-general.php', 'mainwp_child_tab' );
@@ -98,6 +105,10 @@ function EPFL_remove_admin_submenus() {
    remove_submenu_page( 'upload.php', 'ewww-image-optimizer-dynamic-debug' );
    remove_submenu_page( 'upload.php', 'ewww-image-optimizer-queue-debug' );
    remove_submenu_page( 'upload.php', 'ewww-image-optimizer-bulk' );
+   // Polylang
+   remove_submenu_page( 'mlang', 'mlang_strings' );
+   remove_submenu_page( 'mlang', 'mlang_settings' );
+   remove_submenu_page( 'mlang', 'mlang_lingotek' );
 
    remove_submenu_page( 'themes.php', 'themes.php' );
 
