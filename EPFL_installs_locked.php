@@ -3,7 +3,7 @@
  * Plugin Name: EPFL lock plugin and theme install and configuration
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 0.0.7
+ * Version: 1.0.0
  * Author: wwp-admin@epfl.ch
  * */
 
@@ -63,79 +63,80 @@ function my_custom_bulk_actions($actions){
  * Add capabilites to editor to manage options and export
  */
 function EPFL_add_editor_caps() {
-	$role = get_role( 'editor' );
-	$role->add_cap( 'manage_options' );
-   $role->add_cap( 'export' );
-   $role->add_cap( 'edit_theme_options' );
+    $role = get_role( 'editor' );
+    $role->add_cap( 'manage_options' );
+    $role->add_cap( 'export' );
+    $role->add_cap( 'edit_theme_options' );
 }
 add_action( 'admin_init', 'EPFL_add_editor_caps');
 
 /* Hide apparence backround and header menu
  *
  */
-add_action( 'after_setup_theme','EPFL_remove_background_header_options', 100 );
 function EPFL_remove_background_header_options() {
-   remove_theme_support( 'custom-header');
-   remove_theme_support( 'custom-background');
+    if ( !current_user_can( 'administrator' ) ) {
+        remove_theme_support( 'custom-header');
+        remove_theme_support( 'custom-background');
+    }
 }
+add_action( 'after_setup_theme','EPFL_remove_background_header_options', 100 );
 
 /* Hide plugin configuration
  * https://codex.wordpress.org/Plugin_API/Action_Reference/admin_menu
  */
-add_action( 'admin_menu', 'EPFL_remove_admin_submenus',999 );
 function EPFL_remove_admin_submenus() {
-   remove_submenu_page( 'options-general.php', 'options-general.php' );
-   remove_submenu_page( 'options-general.php', 'options-permalink.php' );
-   remove_submenu_page( 'options-general.php', 'mainwp_child_tab' );
-   remove_submenu_page( 'options-general.php', 'epfl_accred' );
-   remove_submenu_page( 'options-general.php', 'epfl_tequila' );
-   // WP Media folder
-   remove_submenu_page( 'options-general.php', 'option-folder' );
-   // Cache-Control
-   remove_submenu_page( 'options-general.php', 'cache_control' );
-   // ewww Image optimizer
-   remove_submenu_page( 'options-general.php', 'ewww-image-optimizer/ewww-image-optimizer.php' );
-   remove_submenu_page( 'upload.php', 'ewww-image-optimizer-dynamic-debug' );
-   remove_submenu_page( 'upload.php', 'ewww-image-optimizer-queue-debug' );
-   remove_submenu_page( 'upload.php', 'ewww-image-optimizer-bulk' );
+    if ( !current_user_can( 'administrator' ) ) {
+        remove_submenu_page( 'options-general.php', 'options-general.php' );
+        remove_submenu_page( 'options-general.php', 'options-permalink.php' );
+        remove_submenu_page( 'options-general.php', 'mainwp_child_tab' );
+        remove_submenu_page( 'options-general.php', 'epfl_accred' );
+        remove_submenu_page( 'options-general.php', 'epfl_tequila' );
+        // WP Media folder
+        remove_submenu_page( 'options-general.php', 'option-folder' );
+        // Cache-Control
+        remove_submenu_page( 'options-general.php', 'cache_control' );
+        // ewww Image optimizer
+        remove_submenu_page( 'options-general.php', 'ewww-image-optimizer/ewww-image-optimizer.php' );
+        remove_submenu_page( 'upload.php', 'ewww-image-optimizer-dynamic-debug' );
+        remove_submenu_page( 'upload.php', 'ewww-image-optimizer-queue-debug' );
+        remove_submenu_page( 'upload.php', 'ewww-image-optimizer-bulk' );
 
-   remove_submenu_page( 'themes.php', 'themes.php' );
+        remove_submenu_page( 'themes.php', 'themes.php' );
 
-   remove_menu_page('enlighter-appearance');
+        remove_menu_page('enlighter-appearance');
 
-	// Hide customize page (there is no other way to do it)
-	global $submenu;
-	if ( isset( $submenu[ 'themes.php' ] ) ) {
-        foreach ( $submenu[ 'themes.php' ] as $index => $menu_item ) {
-            if ( in_array(strtolower($menu_item[0]),  array( 'customize', 'customizer' )) ) {
-                unset( $submenu[ 'themes.php' ][ $index ] );
+        // Hide customize page (there is no other way to do it)
+        global $submenu;
+        if ( isset( $submenu[ 'themes.php' ] ) ) {
+            foreach ( $submenu[ 'themes.php' ] as $index => $menu_item ) {
+                if ( in_array(strtolower($menu_item[0]),  array( 'customize', 'customizer' )) ) {
+                    unset( $submenu[ 'themes.php' ][ $index ] );
+                }
             }
         }
     }
-
 }
-
+add_action( 'admin_menu', 'EPFL_remove_admin_submenus', 999 );
 
 /* Hide customize menu in admin bar
  *
  */
-add_action( 'wp_before_admin_bar_render', 'EPFL_remove_customize_admin_bar_render' );
 function EPFL_remove_customize_admin_bar_render()
 {
-    global $wp_admin_bar;
-    $wp_admin_bar->remove_menu('customize');
+    if ( !current_user_can( 'administrator' ) ) {
+        global $wp_admin_bar;
+        $wp_admin_bar->remove_menu('customize');
+    }
 }
+add_action( 'wp_before_admin_bar_render', 'EPFL_remove_customize_admin_bar_render' );
 
 /* Remove 'At a glance' and 'Welcome' widgets from Dashboard (because contains link to themes page)
  *
  */
-add_action( 'admin_init','EPFL_remove_theme_reference_widget', 100 );
 function EPFL_remove_theme_reference_widget() {
-    remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
-    remove_action('welcome_panel', 'wp_welcome_panel');
+    if ( !current_user_can( 'administrator' ) ) {
+        remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
+        remove_action('welcome_panel', 'wp_welcome_panel');
+    }
 }
-
-
-
-
-?>
+add_action( 'admin_init','EPFL_remove_theme_reference_widget', 100 );
