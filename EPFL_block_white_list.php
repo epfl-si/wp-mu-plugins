@@ -13,7 +13,7 @@ function epfl_allowed_block_types( $allowed_block_types, $post ) {
     NOTES:
     - A block cannot be in both list at the same time.
     - For EPFL blocks allowed in Posts, please have a look a wp-epfl-gutenberg plugin (plugin.php) file*/
-    $post_only_blocks = array('core/gallery',
+    $post_only_blocks = array(
         'core/heading',
         'core/image',
         'core/file',
@@ -24,7 +24,6 @@ function epfl_allowed_block_types( $allowed_block_types, $post ) {
         'tadv/classic-paragraph');
 
     $rest_of_allowed_blocks = array(
-        'core/gallery',
         'core/classic',
         'core/rss',
         'core/shortcode',
