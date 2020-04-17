@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.0.1
+ * Version: 1.1.0
  * Author: wwp-admin@epfl.ch
  */
 
@@ -527,4 +527,25 @@ add_filter( 'option_enlighter-activation-redirect', function( $value ) {
     return '';
 });
 
-?>
+/**
+ * As we use the pdf viewer plugin and it force the usage of the default "old" jquery from Wordpress on all pages
+ * https://github.com/audrasjb/pdf-viewer-block/blob/6bc718b251a6623f2fe0cb68ca37c8037d35c884/public/public.php#L24
+ * Make the enqueue with our jquery
+ */
+function remove_old_jquery_for_pdf_viewer() {
+
+    # if 'pdf-viewer-block-scripts' is here (the one with the jquery dep)
+    if (wp_script_is('pdf-viewer-block-scripts') && wp_script_is('epfl-js-jquery') ){
+        global $wp_scripts;
+
+        if (isset($wp_scripts->registered['pdf-viewer-block-scripts'])) {
+            foreach ($wp_scripts->registered['pdf-viewer-block-scripts']->deps as &$dep) {
+                if ($dep === 'jquery') {
+                    $dep = 'epfl-js-jquery';
+                }
+            }
+        }
+    }
+}
+
+add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
