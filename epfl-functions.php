@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: wwp-admin@epfl.ch
  */
 
@@ -549,3 +549,14 @@ function remove_old_jquery_for_pdf_viewer() {
 }
 
 add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
+
+/**
+ * Disables the REST API for unlogged users
+ */
+function disable_wp_rest_api() {
+  if (!is_user_logged_in()) {
+    $message = apply_filters('disable_wp_rest_api_error', __('REST API restricted to authenticated users.', 'disable-wp-rest-api'));
+    return new WP_Error('rest_login_required', $message, array('status' => rest_authorization_required_code()));
+  }
+}
+add_action('init', 'disable_wp_rest_api');
