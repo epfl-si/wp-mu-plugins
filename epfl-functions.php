@@ -551,12 +551,17 @@ function remove_old_jquery_for_pdf_viewer() {
 add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
 
 /**
- * Disables the REST API for unlogged users
+ * Disable the REST API for unlogged users
  */
-function disable_wp_rest_api() {
-  if (!is_user_logged_in()) {
-    $message = apply_filters('disable_wp_rest_api_error', __('REST API restricted to authenticated users.', 'disable-wp-rest-api'));
-    return new WP_Error('rest_login_required', $message, array('status' => rest_authorization_required_code()));
-  }
+function disable_rest_api_for_unlogged_users($access) {
+	if( ! is_user_logged_in() ) {
+        return new WP_Error( 
+          'rest_cannot_access', 
+          __( 'Only authenticated users can access the REST API.', 'disable-json-api' ), 
+          array( 'status' => rest_authorization_required_code() ) 
+        );
+    }
+    return $access;
 }
-add_action('init', 'disable_wp_rest_api');
+
+add_filter( 'rest_authentication_errors', 'disable_rest_api_for_unlogged_users' );
