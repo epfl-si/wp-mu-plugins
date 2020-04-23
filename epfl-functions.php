@@ -559,16 +559,16 @@ add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
  * /wp-json/wp/v2/epfl-external-menu
  */
 function disable_rest_api_for_unlogged_users($access) {
-  if (! is_user_logged_in()) {
-      if (strpos($_SERVER['REQUEST_URI'], 'wp-json/epfl') == false and
-         strpos($_SERVER['REQUEST_URI'], 'epfl-external-menu') == false) {
-          return new WP_Error(
-              'rest_cannot_access',
-              __('Only authenticated users can access the REST API.', 'disable-json-api'),
-              array('status' => rest_authorization_required_code() ));
-      }
-  }
-  return $access;
+    if (! is_user_logged_in()) {
+        if (strpos($_SERVER['REQUEST_URI'], 'wp-json/epfl') == false and
+            strpos($_SERVER['REQUEST_URI'], 'epfl-external-menu') == false) {
+            return new WP_Error(
+                'rest_cannot_access',
+                __('Only authenticated users can access the REST API.', 'disable-json-api'),
+                array('status' => rest_authorization_required_code() ));
+        }
+    }
+    return $access;
 }
 
 add_filter( 'rest_authentication_errors', 'disable_rest_api_for_unlogged_users' );
