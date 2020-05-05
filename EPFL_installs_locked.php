@@ -3,7 +3,7 @@
  * Plugin Name: EPFL lock plugin and theme install and configuration
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: wwp-admin@epfl.ch
  * */
 
@@ -140,3 +140,18 @@ function EPFL_remove_theme_reference_widget() {
     }
 }
 add_action( 'admin_init','EPFL_remove_theme_reference_widget', 100 );
+
+
+/**
+ * Hides TinyMCE buttons to set image alignment
+ */
+function hide_tinymce_img_align() {
+
+    $css = '.mce-i-dashicon.dashicons-align-left, .mce-i-dashicon.dashicons-align-center, .mce-i-dashicon.dashicons-align-right { display: none; }';
+
+    wp_register_style( 'tinymce-hide-img-align-style', false );
+    wp_enqueue_style( 'tinymce-hide-img-align-style');
+    wp_add_inline_style( 'tinymce-hide-img-align-style', $css );
+
+}
+add_action( 'admin_enqueue_scripts', 'hide_tinymce_img_align' );
