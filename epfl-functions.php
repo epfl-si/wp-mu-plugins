@@ -653,15 +653,15 @@ function rewrite_template_directory_uri_to_root($template_dir_uri, $template, $t
         }
 
         $awaited_link_target_start .= 'wp/wp-content/';
-        var_dump($awaited_link_target_start);
+        #var_dump($awaited_link_target_start);
 
         if (substr( $link_target, 0, strlen(awaited_link_target_start)) === $awaited_link_target_start) {
             # not the awaited link, cancel the operation
-            var_dump("not the awaited link, cancel the operation");
+            #var_dump("not the awaited link, cancel the operation");
             return $template_dir_uri;
         } else {
             # all good, rewrite the url
-            var_dump("all good, rewrite the url");
+            #var_dump("all good, rewrite the url");
             $root_template_dir_uri = str_replace($path_under_htdocs, "", $template_dir_uri);
             return $root_template_dir_uri;
         }
@@ -672,3 +672,58 @@ function rewrite_template_directory_uri_to_root($template_dir_uri, $template, $t
 }
 
 add_filter('template_directory_uri', 'rewrite_template_directory_uri_to_root', 10, 3);
+
+# stylesheet_directory_uri
+
+/**
+ * Try loading the assets url from the root site/pod,
+ * so the user's browser cache (identified by url) will be used as much as possible
+ */
+function rewrite_stylesheet_directory_uri_to_root($stylesheet_dir_uri, $stylesheet, $theme_root_uri) {
+    # prerequiste to get it right
+    if (!class_exists('EPFL\\Pod\\Site')) {
+        return $template_dir_uri;  # nope, better cancel now
+    }
+
+    $site_info  = Site::this_site();
+
+    $path_under_htdocs = $site_info->path_under_htdocs . '/';  # 'schools/enac'
+
+        # TODO: assert we can cache the operation
+    $template_directory = get_template_directory();
+
+    # only when our templates dir is a symlink, we may want to go to the source
+    if ($template_directory && is_link($template_directory)) {
+        # source should be our path minus the position we have in the tree
+        # additional verification that we have what we want
+        $link_target = readlink($template_directory);  # string(40) "../../wp/wp-content/themes/wp-theme-2018"
+
+
+        # check if we have what we need, a link at root
+        $awaited_link_target_start = '';
+
+        for ($i = 0; $i < substr_count($path_under_htdocs, '/'); $i++) {
+            # yes, the root is depending of our current depth
+            $awaited_link_target_start .= '../';
+        }
+
+        $awaited_link_target_start .= 'wp/wp-content/';
+        #var_dump($awaited_link_target_start);
+
+        if (substr( $link_target, 0, strlen(awaited_link_target_start)) === $awaited_link_target_start) {
+            # not the awaited link, cancel the operation
+            #var_dump("not the awaited link, cancel the operation");
+            return $template_dir_uri;
+        } else {
+            # all good, rewrite the url
+            #var_dump("all good, rewrite the url");
+            $root_template_dir_uri = str_replace($path_under_htdocs, "", $template_dir_uri);
+            return $root_template_dir_uri;
+        }
+    } else {
+        # no symlink used for template directory ? that means we got all we want already
+        return $template_dir_uri;
+    }
+}
+
+add_filter('stylesheet_directory_uri', 'rewrite_stylesheet_directory_uri_to_root', 10, 3);
