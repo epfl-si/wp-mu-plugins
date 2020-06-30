@@ -20,11 +20,9 @@ function add_gutenberg_custom_editor_menu() {
 	}
 }
 
-
 // Gutenberg is on ?
 if (function_exists( 'register_block_type' ) ) {
 	add_action( 'enqueue_block_editor_assets', 'add_gutenberg_custom_editor_menu' );
-	
 }
 
 ?>
