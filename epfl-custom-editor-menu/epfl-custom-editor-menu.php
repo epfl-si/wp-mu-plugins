@@ -8,14 +8,15 @@ function add_gutenberg_custom_editor_menu() {
 		array( 'wp-editor', 'wp-blocks', 'wp-i18n', 'wp-element' )
 	);
 
-	// If we're in the admin section and user is not an administrator,
-	if(is_admin() && !current_user_can('administrator') )
-	{
-		// We add a script to hide "Page Attributes" panel on the editor right side
-		wp_enqueue_script(
-			'wp-gutenberg-epfl-custom-editor-menu-editor',
-			content_url() . '/mu-plugins/epfl-custom-editor-menu/epfl-custom-editor-menu-editor.js',
-			array( 'wp-editor', 'wp-blocks', 'wp-i18n', 'wp-element' )
+	/**
+	 * set custom CSS to be loaded for non admin users
+	 */
+	if(is_admin() && !current_user_can('administrator') ) {
+		wp_enqueue_style(
+			'editor-styles.css',
+			content_url() . '/mu-plugins/epfl-custom-editor-menu/custom-editor-for-editor.css',
+			array('wp-edit-blocks'),
+			filemtime(dirname(__FILE__) . '/custom-editor-for-editor.css')
 		);
 	}
 }
