@@ -26,4 +26,18 @@ if (function_exists( 'register_block_type' ) ) {
 	add_action( 'enqueue_block_editor_assets', 'add_gutenberg_custom_editor_menu' );
 }
 
-?>
+/**
+ * Hide the template selector in "page view"->"quick edit"
+ */
+function load_admin_script() {
+    if (is_admin() && !current_user_can('administrator') ) {
+        wp_enqueue_script(
+            'custom-admin-dashboard.js',
+            content_url() . '/mu-plugins/epfl-custom-editor-menu/custom-admin-dashboard.js',
+            array('jquery'),
+            filemtime(dirname(__FILE__) . '/custom-admin-dashboard.js')
+        );
+    }
+}
+
+add_action('admin_enqueue_scripts', 'load_admin_script');
