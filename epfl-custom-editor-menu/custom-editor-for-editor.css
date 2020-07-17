@@ -1,5 +1,0 @@
-/* Hide the template selection from Attribute panel option */
-.components-base-control.editor-page-attributes__template
-{
-    display: none;
-}

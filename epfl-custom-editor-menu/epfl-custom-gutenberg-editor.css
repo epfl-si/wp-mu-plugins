@@ -1,0 +1,10 @@
+/* Hide the template selection from Attribute panel option */
+.components-base-control.editor-page-attributes__template
+{
+    display: none;
+}
+
+/* Hide the password visibility post option */
+[id^="editor-post-password-"], label[for^="editor-post-password-"], input[id^="editor-post-password-"] {
+    display: none;
+}
