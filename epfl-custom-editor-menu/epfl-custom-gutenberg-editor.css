@@ -8,3 +8,7 @@
 [id^="editor-post-password-"], label[for^="editor-post-password-"], input[id^="editor-post-password-"] {
     display: none;
 }
+
+button.components-button[aria-label="Change alignment"] {
+    display: none;
+}
