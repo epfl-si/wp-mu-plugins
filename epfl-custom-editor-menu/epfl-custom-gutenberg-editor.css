@@ -9,6 +9,7 @@
     display: none;
 }
 
+/* Hide the alignment button over the image gallery */
 button.components-button[aria-label="Change alignment"] {
     display: none;
 }
