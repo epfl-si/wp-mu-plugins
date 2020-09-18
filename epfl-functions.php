@@ -612,80 +612,30 @@ function social_network_meta_tags()
 
 add_action('wp_head','social_network_meta_tags');
 
-
 use EPFL\Pod\Site;
 
-function rewrite_uri_to_root($uri) {
-    # prerequisite to get it right
-    if (!class_exists('\\EPFL\\Pod\\Site')) {
-        return $uri;  # nope, better cancel now
-    }
-
-    $site_info  = Site::this_site();
-
-    $path_under_htdocs = $site_info->path_under_htdocs . '/';  # 'schools/enac'
-
-    # TODO: assert we can cache the operation
-    $template_directory = get_template_directory();
-
-    # only when our templates dir is a symlink, we may want to go to the source
-    if ($template_directory && is_link($template_directory)) {
-        # source should be our path minus the position we have in the tree
-        # additional verification that we have what we want
-        $link_target = readlink($template_directory);  # string(40) "../../wp/wp-content/themes/wp-theme-2018"
-
-
-        # check if we have what we need, a link at root
-        $awaited_link_target_start = '';
-
-        for ($i = 0; $i < substr_count($path_under_htdocs, '/'); $i++) {
-            # yes, the root is depending of our current depth
-            $awaited_link_target_start .= '../';
-        }
-
-        $awaited_link_target_start .= 'wp/wp-content/';
-        #var_dump($awaited_link_target_start);
-
-        if (substr( $link_target, 0, strlen($awaited_link_target_start)) === $awaited_link_target_start) {
-            # not the awaited link, cancel the operation
-            #var_dump("not the awaited link, cancel the operation");
-            return $uri;
-        } else {
-            # all good, rewrite the url
-            return str_replace($path_under_htdocs, "", $uri);
-        }
-    } else {
-        # no symlink used for template directory ? that means we got all we want already
-        return $uri;
-    }
-}
-
 /**
  * Try loading the assets url from the root site/pod,
  * so the user's browser cache (identified by the url) is used
  */
-function rewrite_template_directory_uri_to_root($template_dir_uri, $template, $theme_root_uri) {
-    # do it only for wp-theme-2018
-    if ($template === "wp-theme-2018") {
-        return rewrite_uri_to_root($template_dir_uri);
-    } else {
+function rewrite_uri_to_root_in_www_theme_2018($template_dir_uri, $template, $theme_root_uri) {
+    if ($template !== "wp-theme-2018") {
         return  $template_dir_uri;
     }
-}
-
-add_filter('template_directory_uri', 'rewrite_template_directory_uri_to_root', 10, 3);
-
-/**
- * Try loading the assets url from the root site/pod,
- * so the user's browser cache (identified by the url) is used
- */
-function rewrite_stylesheet_directory_uri_to_root($stylesheet_dir_uri, $stylesheet, $theme_root_uri) {
-    # do it only for wp-theme-2018
-    if ($stylesheet === "wp-theme-2018") {
-        return rewrite_uri_to_root($stylesheet_dir_uri);
-    } else {
-        return $stylesheet_dir_uri;
+    # Bail out unless epfl-menus is installed (i.e. on www.epfl.ch)
+    if (!class_exists('\\EPFL\\Pod\\Site')) {
+        # nope, better cancel now
+        return $template_dir_uri;
     }
+
+    $wp_symlink_path = dirname(dirname(dirname(get_template_directory()))) . "/wp";
+    if (! ($wp_version = readlink($wp_symlink_path))) {
+        return $template_dir_uri;
+    }
+
+    $path_under_htdocs = '/' . Site::this_site()->path_under_htdocs;  # '/schools/enac'
+    return str_replace($path_under_htdocs, $wp_version, $template_dir_uri);
 }
 
-add_filter('stylesheet_directory_uri', 'rewrite_stylesheet_directory_uri_to_root', 10, 3);
+add_filter('template_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
+add_filter('stylesheet_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
