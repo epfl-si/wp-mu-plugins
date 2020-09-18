@@ -552,8 +552,8 @@ add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
 
 /**
  * Disable the REST API for unlogged users.
- * 
- * For the correct operation of the menu, the following entry points are always accessible: 
+ *
+ * For the correct operation of the menu, the following entry points are always accessible:
  * /wp-json/epfl/v1/languages
  * /wp-json/epfl/v1/menus/top
  * /wp-json/wp/v2/epfl-external-menu
@@ -589,7 +589,7 @@ function social_network_meta_tags()
     <?php endif; ?>
     <meta property="og:url" content="<?php echo  "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>" />
     <?php if ( get_the_post_thumbnail() ) :
-    $image_data_wh = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'large' ); 
+    $image_data_wh = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'large' );
     ?>
     <meta property="og:image:width" content="<?php echo $image_data_wh[1]; ?>" />
     <meta property="og:image:height" content="<?php echo $image_data_wh[2]; ?>" />
@@ -611,3 +611,31 @@ function social_network_meta_tags()
 }
 
 add_action('wp_head','social_network_meta_tags');
+
+use EPFL\Pod\Site;
+
+/**
+ * Try loading the assets url from the root site/pod,
+ * so the user's browser cache (identified by the url) is used
+ */
+function rewrite_uri_to_root_in_www_theme_2018($template_dir_uri, $template, $theme_root_uri) {
+    if ($template !== "wp-theme-2018") {
+        return  $template_dir_uri;
+    }
+    # Bail out unless epfl-menus is installed (i.e. on www.epfl.ch)
+    if (!class_exists('\\EPFL\\Pod\\Site')) {
+        # nope, better cancel now
+        return $template_dir_uri;
+    }
+
+    $wp_symlink_path = dirname(dirname(dirname(get_template_directory()))) . "/wp";
+    if (! ($wp_version = readlink($wp_symlink_path))) {
+        return $template_dir_uri;
+    }
+
+    $path_under_htdocs = '/' . Site::this_site()->path_under_htdocs;  # '/schools/enac'
+    return str_replace($path_under_htdocs, $wp_version, $template_dir_uri);
+}
+
+add_filter('template_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
+add_filter('stylesheet_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
