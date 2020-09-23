@@ -3,7 +3,7 @@
  * Plugin Name: EPFL lock plugin and theme install and configuration
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: wwp-admin@epfl.ch
  * */
 
@@ -155,3 +155,13 @@ function hide_tinymce_img_align() {
 
 }
 add_action( 'admin_enqueue_scripts', 'hide_tinymce_img_align' );
+
+/**
+ * Remove block patterns support for WP 5.5
+ * https://make.wordpress.org/core/2020/07/16/block-patterns-in-wordpress-5-5/
+ */
+function remove_block_patterns() {
+    remove_theme_support( 'core-block-patterns' );
+}
+
+add_action( 'init', 'remove_block_patterns', 1);
