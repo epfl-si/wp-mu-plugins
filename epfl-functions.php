@@ -633,10 +633,16 @@ function rewrite_uri_to_root_in_www_theme_2018($template_dir_uri, $template, $th
         return $template_dir_uri;
     }
 
-    $path_under_htdocs = '/' . Site::this_site()->path_under_htdocs;
+    $path_under_htdocs = Site::this_site()->path_under_htdocs;
 
-    # Rewrite only URLs that point under the theme:
-    $rewrite_from = $path_under_htdocs . 'wp-content/themes/';
+    # Rewrite only URLs that point under the theme
+    if (empty($path_under_htdocs)) {
+        # on root sites, we want to rewrite only the theme path
+        $rewrite_from = '/wp-content/themes/';
+    } else {
+        $rewrite_from = '/' . $path_under_htdocs . '/wp-content/themes/';
+    }
+
     $rewrite_to = $wp_version . '/wp-content/themes/';
 
     return str_replace($rewrite_from, $rewrite_to, $template_dir_uri);
