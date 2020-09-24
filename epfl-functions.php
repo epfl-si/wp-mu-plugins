@@ -633,8 +633,12 @@ function rewrite_uri_to_root_in_www_theme_2018($template_dir_uri, $template, $th
         return $template_dir_uri;
     }
 
-    $path_under_htdocs = '/' . Site::this_site()->path_under_htdocs;  # '/schools/enac'
-    return str_replace($path_under_htdocs, $wp_version, $template_dir_uri);
+    $path_under_htdocs = '/' . Site::this_site()->path_under_htdocs;
+
+    # append some known path, as we never want to replace only '/'
+    $template_path_under_htdocs = $path_under_htdocs . 'wp-content/themes/';
+
+    return str_replace($template_path_under_htdocs, $wp_version.'/wp-content/themes/', $template_dir_uri);
 }
 
 add_filter('template_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
