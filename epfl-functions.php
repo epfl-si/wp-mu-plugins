@@ -527,6 +527,15 @@ add_filter( 'option_enlighter-activation-redirect', function( $value ) {
     return '';
 });
 
+# Deactivate the "Install wizard" for WP Media folder
+add_filter('wpmf_user_can', function( $default_value, $action ) {
+    if ($action === 'first_install_plugin') {
+        return False;
+    } else {
+        return $default_value;
+    }
+  }, 10, 2);
+
 /**
  * As we use the pdf viewer plugin and it force the usage of the default "old" jquery from Wordpress on all pages
  * https://github.com/audrasjb/pdf-viewer-block/blob/6bc718b251a6623f2fe0cb68ca37c8037d35c884/public/public.php#L24
