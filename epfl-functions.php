@@ -592,7 +592,7 @@ function do_bypass_rest_api_auth( $user_id ) {
     $is_admin = array_intersect( array('administrator'), (array) get_user_by('id', $user_id)->roles );
 
     // user has admin capabilities
-    if ( $is_admin) {
+    if ( $is_admin ) {
         $bypass_rest_api_auth = true;
         return get_user_by('id', $user_id)->ID;
     }
