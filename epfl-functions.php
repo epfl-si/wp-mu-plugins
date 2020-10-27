@@ -583,6 +583,40 @@ function disable_rest_api_for_unlogged_users($access) {
 
 add_filter( 'rest_authentication_errors', 'disable_rest_api_for_unlogged_users' );
 
+function do_bypass_rest_api_auth( $user_id ) {
+
+    global $bypass_rest_api_auth;
+    $bypass_rest_api_auth = false;
+
+    // https://wordpress.stackexchange.com/a/131816
+    $is_admin = array_intersect( array('administrator'), (array) get_user_by('id', $user_id)->roles );
+
+    // user has admin capabilities
+    if ( $is_admin ) {
+        $bypass_rest_api_auth = true;
+        return get_user_by('id', $user_id)->ID;
+    }
+
+    // user is not logged in, but request is cluster internal: force admin user
+    if ( $_SERVER['SERVER_PORT'] == 8443 ) {
+        $bypass_rest_api_auth = true;
+        return get_user_by('login', 'admin')->ID;
+    }
+
+    // every other case just continue with user id
+    return $user_id;
+}
+add_filter( 'determine_current_user', 'do_bypass_rest_api_auth', 20 );
+
+function json_basic_auth_error( $error ) {
+    // Passthrough other errors
+    if ( ! empty( $error ) ) {
+        return $error;
+    }
+    global $bypass_rest_api_auth;
+    return $bypass_rest_api_auth;
+}
+add_filter( 'rest_authentication_errors', 'json_basic_auth_error' );
 
 /**
  * Adds meta tags for social network
