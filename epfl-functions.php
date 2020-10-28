@@ -694,3 +694,13 @@ function rewrite_uri_to_root_in_www_theme_2018($template_dir_uri, $template, $th
 
 add_filter('template_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
 add_filter('stylesheet_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
+
+function remove_find_my_blocks_menu_entries() {
+  global $menu, $submenu;
+  // remove the "Reusable block" menu entry, accessible at wp-admin/edit.php?post_type=wp_block
+  remove_menu_page( 'edit.php?post_type=wp_block' );
+  // remove "Tools > Find My Blocks" menu entry, accessible at wp-admin/tools.php?page=find-my-blocks
+  remove_submenu_page( 'tools.php', 'find-my-blocks' );
+}
+
+add_action( 'admin_menu', 'remove_find_my_blocks_menu_entries', 999 );
