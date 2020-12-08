@@ -527,6 +527,11 @@ add_filter( 'option_enlighter-activation-redirect', function( $value ) {
     return '';
 });
 
+# Deactivate the "setup after insall/update" for WP Media folder
+add_action( 'admin_init', function() {
+  update_option('_wpmf_activation_redirect', 1);
+}, 1);
+
 # Deactivate the "Install wizard" for WP Media folder
 add_filter('wpmf_user_can', function( $default_value, $action ) {
     if ($action === 'first_install_plugin') {
