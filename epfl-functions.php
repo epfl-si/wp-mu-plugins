@@ -711,3 +711,12 @@ function remove_find_my_blocks_menu_entries() {
 }
 
 add_action( 'admin_menu', 'remove_find_my_blocks_menu_entries', 999 );
+
+
+// prevent Click jacking by disabling iframe
+function replace_wp_headers($headers) {
+  $headers['X-Frame-Options'] = 'DENY';
+  return $headers;
+}
+add_filter('wp_headers', replace_wp_headers);
+
