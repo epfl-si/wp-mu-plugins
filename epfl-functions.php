@@ -718,5 +718,5 @@ function replace_wp_headers($headers) {
   $headers['X-Frame-Options'] = 'DENY';
   return $headers;
 }
-add_filter('wp_headers', replace_wp_headers);
+add_filter('wp_headers', 'replace_wp_headers');
 
