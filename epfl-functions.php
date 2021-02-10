@@ -238,9 +238,10 @@ add_shortcode('colored-box', 'colored_box');
  * however, we still want the homepage to use it (and bypass all
  * caches). */
 $current_url = array_key_exists('SCRIPT_URL', $_SERVER)? $_SERVER["SCRIPT_URL"] : "" ;
-if ($current_url != "/") {
+# temporory disable PLL_COOKIE to cache all pages
+#if ($current_url != "/") {
     define('PLL_COOKIE', false);
-}
+#}
 
 /*
     If we have 302 redirection on local address, we transform them to 303 to avoid CloudFlare to cache
