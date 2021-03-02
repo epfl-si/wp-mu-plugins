@@ -597,7 +597,11 @@ function do_bypass_rest_api_auth( $user_id ) {
     $bypass_rest_api_auth = false;
 
     // https://wordpress.stackexchange.com/a/131816
-    $is_admin = array_intersect( array('administrator'), (array) get_user_by('id', $user_id)->roles );
+    if ($user_id) {
+        $is_admin = array_intersect(array('administrator'), (array)get_user_by('id', $user_id)->roles);
+    } else {
+        $is_admin = false;
+    }
 
     // user has admin capabilities
     if ( $is_admin ) {
