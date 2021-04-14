@@ -27,7 +27,9 @@ function epfl_allowed_block_types( $allowed_block_types, $post ) {
         'core/rss',
         'core/shortcode',
         'core/freeform',
-        'enlighter/codeblock'
+        'enlighter/codeblock',
+        // When WPForms is present, this allows to use it in the code block lookup UI (Tested in 5.7)
+        'wpforms/form-selector'
     );
 
     // In all cases post only blocks are allowed
