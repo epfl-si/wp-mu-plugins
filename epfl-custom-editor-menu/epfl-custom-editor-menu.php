@@ -5,6 +5,15 @@
  * For the editors only.
   */
 function add_gutenberg_custom_editor_menu() {
+    /* only for admin */
+    if(is_admin() && current_user_can('administrator') ) {
+        wp_enqueue_script(
+            'epfl-custom-gutenberg-administrator.js',
+            content_url() . '/mu-plugins/epfl-custom-editor-menu/epfl-custom-gutenberg-administrator.js',
+            array( 'wp-editor', 'wp-blocks', 'wp-i18n', 'wp-element' ),
+            filemtime(dirname(__FILE__) . '/epfl-custom-gutenberg-administrator.js')
+        );
+    }
 
     /* only for non-admin, aka the editors */
     if(is_admin() && !current_user_can('administrator') ) {
