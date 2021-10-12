@@ -750,7 +750,7 @@ function wp_mail_from_epfl_noreply( $content_type ) {
     $noreply .= '@epfl.ch';
     return $noreply;
 }
-add_filter( 'wp_mail_from', 'wp_mail_from_epfl_noreply' );
+add_filter( 'wp_mail_from', 'wp_mail_from_epfl_noreply', 20 );
 function wp_mail_from_epfl_noreply_name( $name ) {
     return get_option( 'blogname' );
 }
