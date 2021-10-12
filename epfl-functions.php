@@ -1,9 +1,9 @@
 <?php
 /*
  * Plugin Name: EPFL Functions
- * Plugin URI:
+ * Plugin URI: https://github.com/epfl-si/wp-mu-plugins/blob/master/epfl-functions.php
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.2.4
+ * Version: 1.2.5
  * Author: wwp-admin@epfl.ch
  */
 
