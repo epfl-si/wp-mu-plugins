@@ -725,3 +725,33 @@ function replace_wp_headers($headers) {
 }
 add_filter('wp_headers', 'replace_wp_headers');
 
+/**
+ * Used to clean the "+" part of the noreply email
+ * https://stackoverflow.com/a/14114419/960623
+ **/
+function cleanEmail( $string ) {
+    $string = str_replace( ' ', '-', $string ); // Replaces all spaces with hyphens.
+    $string = preg_replace( '/[^A-Za-z0-9\-]/', '', $string ); // Removes special chars.
+    return preg_replace( '/-+/', '-', $string ); // Replaces multiple hyphens with single one.
+}
+
+/**
+ * Hook on the "wp_mail()": both for the "from" and the "name" that
+ * allow us to redefine them. It only works if the from is not set.
+ * See https://wordpress.stackexchange.com/a/9104/130347 and
+ * https://developer.wordpress.org/reference/hooks/wp_mail_from/
+ * Please note that the commit in wp-ops 
+ * https://github.com/epfl-si/wp-ops/commit/b5bcb844278c1720d8cddd368c895a3d9042f5c1
+ * will "win" on this hook.
+**/
+function wp_mail_from_epfl_noreply( $content_type ) {
+    $noreply = 'noreply+';
+    $noreply .= strtolower( cleanEmail( get_option( 'blogname' ) ) );
+    $noreply .= '@epfl.ch';
+    return $noreply;
+}
+add_filter( 'wp_mail_from', 'wp_mail_from_epfl_noreply' );
+function wp_mail_from_epfl_noreply_name( $name ) {
+    return get_option( 'blogname' );
+}
+add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
