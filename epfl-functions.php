@@ -610,7 +610,7 @@ function do_bypass_rest_api_auth( $user_id ) {
     }
 
     // user is not logged in, but request is cluster internal: force admin user
-    if ( $_SERVER['SERVER_PORT'] == 8443 ) {
+    if ( isset( $_SERVER['SERVER_PORT'] ) && $_SERVER['SERVER_PORT'] == 8443 ) {
         $bypass_rest_api_auth = true;
         return get_user_by('login', 'admin')->ID;
     }
