@@ -630,43 +630,6 @@ function json_basic_auth_error( $error ) {
 }
 add_filter( 'rest_authentication_errors', 'json_basic_auth_error' );
 
-/**
- * Adds meta tags for social network
- */
-function social_network_meta_tags()
-{
-    global $wp;
-    ?>
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="<?php the_title(); ?>" />
-    <?php if ( get_the_excerpt() ) : ?>
-    <meta property="og:description" content="<?php the_excerpt(); ?>" />
-    <?php endif; ?>
-    <meta property="og:url" content="<?php echo  "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>" />
-    <?php if ( get_the_post_thumbnail() ) :
-    $image_data_wh = wp_get_attachment_image_src( get_post_thumbnail_id( get_the_ID() ), 'large' );
-    ?>
-    <meta property="og:image:width" content="<?php echo $image_data_wh[1]; ?>" />
-    <meta property="og:image:height" content="<?php echo $image_data_wh[2]; ?>" />
-    <meta property="og:image" content="<?php echo get_the_post_thumbnail_url( get_the_ID(), 'large' ); ?>" />
-    <?php endif; ?>
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="<?php the_title(); ?>" />
-    <?php if ( get_the_excerpt() ) : ?>
-    <meta name="twitter:description" content="<?php the_excerpt(); ?>" />
-    <?php endif; ?>
-    <?php if ( get_the_post_thumbnail() ) : ?>
-    <meta name="twitter:image" content="<?php echo get_the_post_thumbnail_url( get_the_ID(), 'large' ); ?>" />
-    <?php endif; ?>
-
-    <?php
-
-}
-
-add_action('wp_head','social_network_meta_tags');
 
 use EPFL\Pod\Site;
 
