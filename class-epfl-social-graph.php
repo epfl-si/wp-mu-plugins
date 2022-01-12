@@ -349,7 +349,7 @@ class EPFL_Social_Graph {
 			}
 			$this->epfl_sg_locales = $languages_locales;
 		} else {
-			$this->epfl_sg_locales = false;
+			$this->epfl_sg_locales = array();
 		}
 		return $this->epfl_sg_locales;
 	}
