@@ -30,7 +30,7 @@
  * Plugin Name:       EPFL Social Graph
  * Plugin URI:        https://github.com/epfl-si/wp-mu-plugins
  * Description:       Define open graph and twitter metadata to enhance sharing
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            EPFL IDEV-FSD
  * Author URI:        https://go.epfl.ch/idev-fsd
  * License:           GPL-2.0+
@@ -163,7 +163,7 @@ class EPFL_Social_Graph {
 	 * @return string site_name
 	 */
 	private function get_the_site_name_for_social_graph() {
-		$this->epfl_sg_site_name = wp_strip_all_tags( self::EPFL_SOCIAL_GRAPH_DEFAULT_SITE_NAME );
+		$this->epfl_sg_site_name = wp_strip_all_tags( self::EPFL_SOCIAL_GRAPH_DEFAULT_SITE_NAME, true );
 		return $this->epfl_sg_site_name;
 	}
 
@@ -178,10 +178,10 @@ class EPFL_Social_Graph {
 	private function get_the_title_for_social_graph() {
 		// Use the title of epfl/hero block if defined.
 		if ( ! empty( $this->{'epfl/hero'}['title'] ) ) {
-			$this->epfl_sg_title = wp_strip_all_tags( html_entity_decode( $this->{'epfl/hero'}['title'] ) );
+			$this->epfl_sg_title = wp_strip_all_tags( $this->{'epfl/hero'}['title'], true );
 		} else {
 			// Fallback to either the page's title of the site's title.
-			$this->epfl_sg_title = wp_strip_all_tags( html_entity_decode( get_the_title() ? get_the_title() : get_bloginfo( 'title' ) ) );
+			$this->epfl_sg_title = wp_strip_all_tags( get_the_title() ? get_the_title() : get_bloginfo( 'title' ), true );
 		}
 		return $this->epfl_sg_title;
 	}
@@ -197,10 +197,10 @@ class EPFL_Social_Graph {
 	private function get_the_description_for_social_graph() {
 		// Use the text of epfl/hero block if defined.
 		if ( ! empty( $this->{'epfl/hero'}['text'] ) ) {
-			$this->epfl_sg_description = wp_strip_all_tags( html_entity_decode( $this->{'epfl/hero'}['text'] ) );
+			$this->epfl_sg_description = wp_strip_all_tags( $this->{'epfl/hero'}['text'], true );
 		} else {
 			// Fallback to either the page's excerpt of the site's tagline.
-			$this->epfl_sg_description = wp_strip_all_tags( html_entity_decode( get_the_excerpt() ? get_the_excerpt() : get_bloginfo( 'tagline' ) ) );
+			$this->epfl_sg_description = wp_strip_all_tags( get_the_excerpt() ? get_the_excerpt() : get_bloginfo( 'tagline' ), true );
 		}
 		return $this->epfl_sg_description;
 	}
@@ -248,7 +248,7 @@ class EPFL_Social_Graph {
 					$this->epfl_sg_image['og:image:width']  = $image_metadata['width'];
 					$this->epfl_sg_image['og:image:height'] = $image_metadata['height'];
 				}
-				$this->epfl_sg_image['og:image:alt']  = wp_strip_all_tags( html_entity_decode( get_post_meta( $image_attachement_id, '_wp_attachment_image_alt', true ) ) );
+				$this->epfl_sg_image['og:image:alt']  = esc_html( wp_strip_all_tags( get_post_meta( $image_attachement_id, '_wp_attachment_image_alt', true ), true ) );
 				$this->epfl_sg_image['og:image:type'] = get_post_mime_type( $image_attachement_id );
 				// Note: information lile title (post_title), caption (post_exerpt) or
 				// description (post_content) can be fetched with
@@ -257,7 +257,7 @@ class EPFL_Social_Graph {
 		}
 		// In case that the epfl/hero's description is set, overwrite the image alt.
 		if ( ! empty( $this->{'epfl/hero'}['description'] ) ) {
-			$this->epfl_sg_image['og:image:alt'] = wp_strip_all_tags( html_entity_decode( $this->{'epfl/hero'}['description'] ) );
+			$this->epfl_sg_image['og:image:alt'] = wp_strip_all_tags( $this->{'epfl/hero'}['description'], true );
 		}
 
 		return $this->epfl_sg_image;
@@ -304,7 +304,7 @@ class EPFL_Social_Graph {
 		// Use the video of epfl/hero block if defined.
 		if ( ! empty( $this->{'epfl/hero'}['videoUrl'] ) ) {
 			$this->epfl_sg_video['og:video']     = esc_url_raw( $this->{'epfl/hero'}['videoUrl'] );
-			$this->epfl_sg_video['og:video:alt'] = wp_strip_all_tags( html_entity_decode( $this->{'epfl/hero'}['description'] ) );
+			$this->epfl_sg_video['og:video:alt'] = wp_strip_all_tags( $this->{'epfl/hero'}['description'], true );
 		} else {
 			$this->epfl_sg_video = array();
 		}
