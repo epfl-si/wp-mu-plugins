@@ -3,11 +3,15 @@
 * Plugin Name: EPFL block white list
 * Plugin URI:
 * Description: Must-use plugin for the EPFL website to define allowed blocks coming from Gutenberg or installed plugins.
-* Version: 1.0.8
+* Version: 1.0.9
 * Author: wwp-admin@epfl.ch
  */
 
-function epfl_allowed_block_types( $allowed_block_types, $post ) {
+function epfl_allowed_block_types( $allowed_block_types, $block_editor_context ) {
+    if ($allowed_block_types === false) {
+        // Look like we don't want any post, respect that
+        return $allowed_block_types;
+    }
 
     /* List of blocks allowed only in Posts
     NOTES:
@@ -33,10 +37,15 @@ function epfl_allowed_block_types( $allowed_block_types, $post ) {
     );
 
     // In all cases post only blocks are allowed
-    $allowed_block_types = array_merge($allowed_block_types, $post_only_blocks);
+    if (is_array($allowed_block_types)) {
+        $allowed_block_types = array_merge($allowed_block_types, $post_only_blocks);
+    } else {
+        // case when it's the boolean one
+        $allowed_block_types = $post_only_blocks;
+    }
 
     // If we're not editing a post, we all rest of allowed blocks.
-    if($post->post_type != 'post')
+    if($block_editor_context->post->post_type != 'post')
     {
         $allowed_block_types = array_merge($allowed_block_types, $rest_of_allowed_blocks);
     }
@@ -52,5 +61,5 @@ function epfl_allowed_block_types( $allowed_block_types, $post ) {
 if (function_exists( 'register_block_type' ) ) {
     // We register this filter with priority 99 to ensure it will be called after the one (if present) added in Gutenberg plugin to
     // register epfl blocks
-	add_filter( 'allowed_block_types', 'epfl_allowed_block_types', 99, 2 );
+	add_filter( 'allowed_block_types_all', 'epfl_allowed_block_types', 99, 2 );
 }
