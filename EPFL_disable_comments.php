@@ -8,6 +8,7 @@
  */
 
 // Remove "comment" shortcut from admin menu (on the left)
+// See wp-theme-2018/disable_comments.php for a full-featured version
 function epfl_dis_com_remove_menu()
 {
    remove_menu_page( 'edit-comments.php' );
