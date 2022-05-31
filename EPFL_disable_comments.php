@@ -3,7 +3,7 @@
 * Plugin Name: EPFL Disable Comments
 * Plugin URI:
 * Description: Must-use plugin to disable comments
-* Version: 0.3
+* Version: 0.4
 * Author: Lucien Chaboudez (https://people.epfl.ch/lucien.chaboudez)
  */
 
@@ -13,7 +13,7 @@ function epfl_dis_com_remove_menu()
 {
    remove_menu_page( 'edit-comments.php' );
 }
-add_action( 'admin_init', 'epfl_dis_com_remove_menu' );
+add_action( 'admin_menu', 'epfl_dis_com_remove_menu' );
 
 
 // Disable widget showing last comments
