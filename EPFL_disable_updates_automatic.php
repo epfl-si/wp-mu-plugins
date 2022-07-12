@@ -3,7 +3,7 @@
  * Plugin Name: EPFL disable all automatic updates.
  * Plugin URI:
  * Description: Must-use plugin for the EPFL website.
- * Version: 0.0.3
+ * Version: 0.0.4
  * Author: wwp-admin@epfl.ch
  * */
 
@@ -32,11 +32,15 @@ add_filter( 'themes_auto_update_enabled', '__return_false' );
 add_filter( 'auto_update_translation', '__return_false' );
 
 // disable plugin update cues
-add_filter('user_has_cap', 'epfl_cannot_update_plugins', 10, 3);
-
 function epfl_cannot_update_plugins ($allcaps, $caps, $args) {
     unset($allcaps['update_plugins']);
     return $allcaps;
 }
+add_filter('user_has_cap', 'epfl_cannot_update_plugins', 10, 3);
 
-?>
+// disable notifications about new WP version in the dasboard
+function epfl_cannot_update_core ($allcaps, $caps, $args) {
+    unset($allcaps['update_core']);
+    return $allcaps;
+}
+add_filter('user_has_cap', 'epfl_cannot_update_core', 10, 3);
