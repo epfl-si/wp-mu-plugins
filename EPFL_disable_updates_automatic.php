@@ -43,3 +43,10 @@ function epfl_no_update_nag () {
     remove_action('admin_notices', 'update_nag', 3);
 }
 add_action( 'admin_init', 'epfl_no_update_nag' );
+
+// disable links about updating to a new WP version
+function epfl_cannot_update_core ($allcaps, $caps, $args) {
+    unset($allcaps['update_core']);
+    return $allcaps;
+}
+add_filter('user_has_cap', 'epfl_cannot_update_core', 10, 3);
