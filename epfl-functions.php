@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI: https://github.com/epfl-si/wp-mu-plugins/blob/master/epfl-functions.php
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.2.5
+ * Version: 1.2.6
  * Author: wwp-admin@epfl.ch
  */
 
@@ -718,3 +718,7 @@ function wp_mail_from_epfl_noreply_name( $name ) {
     return get_option( 'blogname' );
 }
 add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
+
+/* Admin CSS styles */
+define('MY_AWESOME_MU_PLUGIN_URL', content_url('/mu-plugins', 'relative'));
+wp_enqueue_style( 'my-mu-styles', MY_AWESOME_MU_PLUGIN_URL.'/my-companies-assets/wp-admin.css', array(), 1 );
