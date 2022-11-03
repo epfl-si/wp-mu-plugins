@@ -1,0 +1,15 @@
+/* Add Border limit to block */
+.block-editor-block-list__layout .wp-block {
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-right-color: #C1C1C1;
+    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: #C1C1C1;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: #C1C1C1;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #C1C1C1;
+}

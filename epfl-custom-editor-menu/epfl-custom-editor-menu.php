@@ -37,6 +37,16 @@ function add_gutenberg_custom_editor_menu() {
             filemtime(dirname(__FILE__) . '/epfl-custom-gutenberg-editor.css')
         );
     }
+
+    /**
+     * Custom CSS for all roles
+     */
+    wp_enqueue_style(
+            'epfl-custom-gutenberg-all.css',
+            content_url() . '/mu-plugins/epfl-custom-editor-menu/epfl-custom-gutenberg-all.css',
+            array('wp-edit-blocks'),
+            filemtime(dirname(__FILE__) . '/epfl-custom-gutenberg-all.css')
+    );
 }
 if (function_exists( 'register_block_type' ) ) {
     // register_block_type exits, we are in Gutenberg
