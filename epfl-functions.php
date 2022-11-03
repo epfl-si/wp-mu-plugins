@@ -719,6 +719,3 @@ function wp_mail_from_epfl_noreply_name( $name ) {
 }
 add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
 
-/* Admin CSS styles */
-define('MY_AWESOME_MU_PLUGIN_URL', content_url('/mu-plugins', 'relative'));
-wp_enqueue_style( 'my-mu-styles', MY_AWESOME_MU_PLUGIN_URL.'/my-companies-assets/wp-admin.css', array(), 1 );
