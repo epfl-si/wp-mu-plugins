@@ -38,3 +38,10 @@ add_action( 'rest_api_init', function () {
     'callback' => 'getLastChange',
   ) );
 } );
+
+add_action( 'rest_api_init', function () {
+  register_rest_route( 'wp/v2', '/lastrevisions', array(
+    'methods' => 'GET',
+    'callback' => 'getLastRevisions',
+  ) );
+} );
