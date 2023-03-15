@@ -45,3 +45,19 @@ add_action( 'rest_api_init', function () {
     'callback' => 'getLastRevisions',
   ) );
 } );
+
+function render_plugin_page (){
+  include 'page.php';
+}
+
+add_action('admin_menu', function () {
+    add_submenu_page(
+        'options-general.php',
+        'Last page changes plugin',
+        'LastPageChanges',
+        'manage_options',
+        'last_page_change_slug',
+        'render_plugin_page'
+    );
+})
+?>
