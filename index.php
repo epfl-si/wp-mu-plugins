@@ -17,3 +17,10 @@ function getLastChange( $data ){
     $results = $wpdb->get_results( $sql );
     return $results;
 }
+
+add_action( 'rest_api_init', function () {
+  register_rest_route( 'wp/v2', '/lastmodified', array(
+    'methods' => 'GET',
+    'callback' => 'getLastChange',
+  ) );
+} );
