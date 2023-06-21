@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: “WPLastPageChanges”
+Plugin Name: EPFL last page changes
 Description: Gives the name of the last user who modified a given page.
-Version: 0.0.2
+Version: 0.0.3
 Author: Jérôme Cosandey
 Author URI: https://github.com/saphirevert
 */
