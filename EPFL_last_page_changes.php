@@ -11,14 +11,19 @@ function getLastChange( $data ){
     global $wpdb;
     $url = $data->get_param( 'url' );
     $postId = url_to_postid($url);
-    $sql = $wpdb->prepare( "SELECT wp_users.user_login AS username, post_modified AS last_modified FROM `wp_posts` 
-                            LEFT JOIN wp_users ON wp_users.ID = wp_posts.post_author
-                            WHERE post_parent=%d AND post_status!='publish' ORDER BY wp_posts.post_modified DESC LIMIT 1;", 
-                            array(
-                              $postId,
-                            ));
-    $results = $wpdb->get_results( $sql );
-    return $results;
+    if ($postId === 0) {
+      status_header(404, "This page does not exist");
+      return http_response_code();
+    } else {
+      $sql = $wpdb->prepare( "SELECT wp_users.user_login AS username, post_modified AS last_modified FROM `wp_posts` 
+                              LEFT JOIN wp_users ON wp_users.ID = wp_posts.post_author
+                              WHERE post_parent=%d AND post_status!='publish' ORDER BY wp_posts.post_modified DESC LIMIT 1;", 
+                              array(
+                                $postId,
+                              ));
+      $results = $wpdb->get_results( $sql );
+      return $results;
+    }
 }
 
 function getLastRevisions( $data ){
