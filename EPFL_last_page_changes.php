@@ -47,12 +47,9 @@ add_action( 'rest_api_init', function () {
   register_rest_route( 'epfl/v1', '/lastchange', array(
     'methods' => 'GET',
     'callback' => 'getLastChange',
-  ) );
-} );
-
-add_action( 'rest_api_init', function () {
+  ));
   register_rest_route( 'epfl/v1', '/lastrevisions', array(
     'methods' => 'GET',
     'callback' => 'getLastRevisions',
-  ) );
-} );
+  ));
+});
