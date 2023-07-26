@@ -11,7 +11,7 @@ function getLastChange( $data ){
     global $wpdb;
     $url = $data->get_param( 'url' );
     $postId = url_to_postid($url);
-    if ($postId === 0) {
+    if ($postId === 0 && trailingslashit(get_site_url()) !== trailingslashit($url)) {
       status_header(404, "This page does not exist");
       return http_response_code();
     } else {
