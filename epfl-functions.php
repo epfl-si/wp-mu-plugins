@@ -719,3 +719,40 @@ function wp_mail_from_epfl_noreply_name( $name ) {
 }
 add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
 
+/**
+ * Limit number range allowed for a Numbers field
+ * Apply the class "wpf-num-limit" to the field to enable.
+ *
+ * @link https://wpforms.com/developers/how-to-limit-range-allowed-in-numbers-field/
+ */
+
+ function wpf_dev_num_limit() {
+    ?>
+    <script type="text/javascript">
+        jQuery(function(){
+            // Limit the maximum amount (maximum (4999) amount for the number field
+            jQuery( '.limit-donation-4999-en input' ).attr({ 'min': 0, 'max': 4999 } );
+	        // Message to be displayed if the min and or max is not met
+            jQuery('.limit-donation-4999-en input').on('change', function() {
+                jQuery.extend(jQuery.validator.messages, {
+                    max: jQuery.validator.format("For any gift starting CHF 5,000, we kindly ask you to contact the Philanthropy team (<a href='mailto:philanthropy@epfl.ch'>philanthropy@epfl.ch</a>) who will be happy to assist you in formalizing your donation."),
+                    min: jQuery.validator.format("For any gift starting CHF 5,000, we kindly ask you to contact the Philanthropy team (<a href='mailto:philanthropy@epfl.ch'>philanthropy@epfl.ch</a>) who will be happy to assist you in formalizing your donation.")
+                });
+            });
+        });
+       
+        jQuery(function(){
+            // Limit the maximum amount (maximum (4999) amount for the number field
+	        jQuery( '.limit-donation-4999-fr input' ).attr({ 'min': 0, 'max': 4999 } );
+            // Message to be displayed if the min and or max is not met
+            jQuery('.limit-donation-4999-fr input').on('change', function() {
+                jQuery.extend(jQuery.validator.messages, {
+                    max: jQuery.validator.format("Pour toute donation dès CHF 5'000.- nous vous invitons à contacter la Philanthropie (<a href='mailto:philanthropy@epfl.ch'>philanthropy@epfl.ch</a>) qui vous accompagnera avec plaisir pour formaliser votre contribution."),
+                    min: jQuery.validator.format("Pour toute donation dès CHF 5'000.- nous vous invitons à contacter la Philanthropie (<a href='mailto:philanthropy@epfl.ch'>philanthropy@epfl.ch</a>) qui vous accompagnera avec plaisir pour formaliser votre contribution.")
+                });
+            });
+        });
+    </script>
+    <?php
+}
+add_action( 'wpforms_wp_footer_end', 'wpf_dev_num_limit', 30 );
