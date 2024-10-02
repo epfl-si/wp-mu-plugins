@@ -683,10 +683,10 @@ function serve_at_root ($uri_or_file) {
     return preg_replace('$^.*/(wp-(?:admin|content|includes))$', '/$1', $uri_or_file);
 }
 function serve_at_root_d ($uri_or_file) {
-	echo $uri_or_file . "<br>";
-	$test = serve_at_root($uri_or_file);
-	echo $test . "<br>";
-	return $test;
+    echo $uri_or_file . "<br>";
+    $test = serve_at_root($uri_or_file);
+    echo $test . "<br>";
+    return $test;
 }
 add_filter( 'style_loader_src', 'serve_at_root');
 add_filter( 'script_loader_src', 'serve_at_root');
@@ -697,10 +697,20 @@ add_filter( 'stylesheet_directory_uri', 'serve_at_root');
 
 /**
  * Change the uploads path (default is wp-content/uploads)
- * to a volume mounted in the wpn-nginx pod, e.g. /data/site-A/uploads/.
+ * to a volume mounted in the wpn-nginx pod, e.g. /data/site-a/uploads/.
+ * See https://developer.wordpress.org/reference/functions/wp_upload_dir/
  */
-\add_filter( 'upload_dir', 'change_upload_dir' );
+add_filter( 'upload_dir', 'change_upload_dir' );
 function change_upload_dir ($uploads) {
-    $uploads['path'] = UPLOADS;
-    return $uploads;
+    if ( defined('EPFL_SITE_UPLOADS_DIR') ) {
+        $path = EPFL_SITE_UPLOADS_DIR . $uploads['subdir'];
+        $uploads['path'] = $path;
+        // $uploads['url'] = '';
+        // $uploads['subdir'] = '';
+        $uploads['basedir'] = EPFL_SITE_UPLOADS_DIR;
+        // $uploads['baseurl'] = '';
+        // $uploads['error'] = '';
+        error_log(var_export($uploads, true));
+        return $uploads;
+    }
 }
