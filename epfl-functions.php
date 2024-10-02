@@ -682,9 +682,25 @@ add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
 function serve_at_root ($uri_or_file) {
     return preg_replace('$^.*/(wp-(?:admin|content|includes))$', '/$1', $uri_or_file);
 }
+function serve_at_root_d ($uri_or_file) {
+	echo $uri_or_file . "<br>";
+	$test = serve_at_root($uri_or_file);
+	echo $test . "<br>";
+	return $test;
+}
 add_filter( 'style_loader_src', 'serve_at_root');
 add_filter( 'script_loader_src', 'serve_at_root');
 add_filter( 'bloginfo_url', 'serve_at_root');
 add_filter( 'includes_url', 'serve_at_root');
 add_filter( 'template_directory_uri', 'serve_at_root');
 add_filter( 'stylesheet_directory_uri', 'serve_at_root');
+
+/**
+ * Change the uploads path (default is wp-content/uploads)
+ * to a volume mounted in the wpn-nginx pod, e.g. /data/site-A/uploads/.
+ */
+\add_filter( 'upload_dir', 'change_upload_dir' );
+function change_upload_dir ($uploads) {
+    $uploads['path'] = UPLOADS;
+    return $uploads;
+}
