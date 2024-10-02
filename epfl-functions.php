@@ -719,3 +719,13 @@ function wp_mail_from_epfl_noreply_name( $name ) {
 }
 add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
 
+
+/**
+ * Change the uploads path (default is wp-content/uploads)
+ * to a volume mounted in the wpn-nginx pod, e.g. /data/site-A/uploads/.
+ */
+\add_filter( 'upload_dir', 'change_upload_dir' );
+function change_upload_dir ($uploads) {
+    $uploads['path'] = UPLOADS;
+    return $uploads;
+}
