@@ -633,43 +633,6 @@ add_filter( 'rest_authentication_errors', 'json_basic_auth_error' );
 
 use EPFL\Pod\Site;
 
-/**
- * Try loading the assets url from the root site/pod,
- * so the user's browser cache (identified by the url) is used
- */
-function rewrite_uri_to_root_in_www_theme_2018($template_dir_uri, $template, $theme_root_uri) {
-    if ($template !== "wp-theme-2018") {
-        return  $template_dir_uri;
-    }
-    # Bail out unless epfl-menus is installed (i.e. on www.epfl.ch)
-    if (!class_exists('\\EPFL\\Pod\\Site')) {
-        # nope, better cancel now
-        return $template_dir_uri;
-    }
-
-    $wp_symlink_path = dirname(dirname(dirname(get_template_directory()))) . "/wp";
-    if (! ($wp_version = readlink($wp_symlink_path))) {
-        return $template_dir_uri;
-    }
-
-    $path_under_htdocs = Site::this_site()->path_under_htdocs;
-
-    # Rewrite only URLs that point under the theme
-    if (empty($path_under_htdocs)) {
-        # on root sites, we want to rewrite only the theme path
-        $rewrite_from = '/wp-content/themes/';
-    } else {
-        $rewrite_from = '/' . $path_under_htdocs . '/wp-content/themes/';
-    }
-
-    $rewrite_to = $wp_version . '/wp-content/themes/';
-
-    return str_replace($rewrite_from, $rewrite_to, $template_dir_uri);
-}
-
-add_filter('template_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
-add_filter('stylesheet_directory_uri', 'rewrite_uri_to_root_in_www_theme_2018', 10, 3);
-
 function remove_find_my_blocks_menu_entries() {
   global $menu, $submenu;
   // remove the "Reusable block" menu entry, accessible at wp-admin/edit.php?post_type=wp_block
