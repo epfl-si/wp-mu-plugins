@@ -60,6 +60,7 @@ if ( ! defined( 'EPFL_SOCIAL_GRAPH_VERSION' ) ) {
  * @author   Nicolas Borboën
  * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License
  */
+#[AllowDynamicProperties]
 class EPFL_Social_Graph {
 
 	const EPFL_SOCIAL_GRAPH_DEFAULT_IMAGE      = 'https://actu.epfl.ch/image/92055/1108x622.jpg';
