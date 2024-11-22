@@ -305,7 +305,7 @@ class EPFL_Social_Graph {
 		// Use the video of epfl/hero block if defined.
 		if ( ! empty( $this->{'epfl/hero'}['videoUrl'] ) ) {
 			$this->epfl_sg_video['og:video']     = esc_url_raw( $this->{'epfl/hero'}['videoUrl'] );
-			$this->epfl_sg_video['og:video:alt'] = wp_strip_all_tags( $this->{'epfl/hero'}['description'], true );
+			$this->epfl_sg_video['og:video:alt'] = array_key_exists('description', $this->{'epfl/hero'}) ? wp_strip_all_tags( $this->{'epfl/hero'}['description'], true ) : '';
 		} else {
 			$this->epfl_sg_video = array();
 		}
