@@ -30,7 +30,7 @@
  * Plugin Name:       EPFL Social Graph
  * Plugin URI:        https://github.com/epfl-si/wp-mu-plugins
  * Description:       Define open graph and twitter metadata to enhance sharing
- * Version:           1.1.0
+ * Version:           1.1.1
  * Author:            EPFL IDEV-FSD
  * Author URI:        https://go.epfl.ch/idev-fsd
  * License:           GPL-2.0+
