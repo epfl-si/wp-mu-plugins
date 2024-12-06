@@ -63,3 +63,18 @@ if (function_exists( 'register_block_type' ) ) {
     // register epfl blocks
 	add_filter( 'allowed_block_types_all', 'epfl_allowed_block_types', 99, 2 );
 }
+
+add_action( 'admin_init', function() {
+
+	// Disable "Available to Install" block suggestions.
+	remove_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
+	remove_action( 'enqueue_block_editor_assets', 'gutenberg_enqueue_block_editor_assets_block_directory' );
+
+} );
+
+add_action( 'init', function() {
+
+	// Disable core block patterns.
+	remove_theme_support( 'core-block-patterns' );
+
+} );
