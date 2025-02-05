@@ -693,12 +693,7 @@ function change_upload_dir ($uploads) {
     if ( defined('EPFL_SITE_UPLOADS_DIR') ) {
         $path = EPFL_SITE_UPLOADS_DIR . $uploads['subdir'];
         $uploads['path'] = $path;
-        // $uploads['url'] = '';
-        // $uploads['subdir'] = '';
         $uploads['basedir'] = EPFL_SITE_UPLOADS_DIR;
-        // $uploads['baseurl'] = '';
-        // $uploads['error'] = '';
-        error_log(var_export($uploads, true));
         return $uploads;
     }
 }
