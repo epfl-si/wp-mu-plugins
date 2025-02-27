@@ -95,6 +95,7 @@ function EPFL_remove_admin_submenus() {
         remove_submenu_page( 'options-general.php', 'option-folder' );
         // Cache-Control
         remove_submenu_page( 'options-general.php', 'cache_control' );
+        remove_submenu_page( 'tools.php', 'redirection' );
         // ewww Image optimizer
         remove_submenu_page( 'options-general.php', 'ewww-image-optimizer/ewww-image-optimizer.php' );
         remove_submenu_page( 'upload.php', 'ewww-image-optimizer-dynamic-debug' );
