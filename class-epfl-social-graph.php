@@ -22,7 +22,7 @@
  *   - learn how to use https://instantview.telegram.org/
  *   - implement news Twitter card element, such as `twitter:site`
  *
- * @link              https://www.eplf.ch
+ * @link              https://www.epfl.ch
  * @since             1.0.0
  * @package           EFPL-MU-plugins
  *
@@ -30,7 +30,7 @@
  * Plugin Name:       EPFL Social Graph
  * Plugin URI:        https://github.com/epfl-si/wp-mu-plugins
  * Description:       Define open graph and twitter metadata to enhance sharing
- * Version:           1.1.1
+ * Version:           1.1.2
  * Author:            EPFL IDEV-FSD
  * Author URI:        https://go.epfl.ch/idev-fsd
  * License:           GPL-2.0+
@@ -245,7 +245,10 @@ class EPFL_Social_Graph {
 			$image_attachement_id = attachment_url_to_postid( $this->epfl_sg_image['og:image'] );
 			if ( is_numeric( $image_attachement_id ) ) {
 				$image_metadata = wp_get_attachment_metadata( $image_attachement_id, 'large' );
-				if ( ! empty( $image_metadata ) ) {
+				if (
+					! empty( $image_metadata['width'] ) &&
+					! empty( $image_metadata['height'] )
+				) {
 					$this->epfl_sg_image['og:image:width']  = $image_metadata['width'];
 					$this->epfl_sg_image['og:image:height'] = $image_metadata['height'];
 				}
