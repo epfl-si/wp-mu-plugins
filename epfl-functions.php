@@ -579,9 +579,20 @@ function disable_rest_api_for_unlogged_users($access) {
     if (is_user_logged_in()) { return $access; }
     if (strpos($_SERVER['REQUEST_URI'], 'wp-json/epfl') !== false) { return $access; }
     if (strpos($_SERVER['REQUEST_URI'], 'epfl-external-menu') !== false) { return $access; }
-    // This is guaranteed (by Kubernetes) to be traffic coming from the same namespace
-    // only.
-    if ($_SERVER['SERVER_PORT'] == 8443) { return $access; }
+
+    // Specific authorization for Search Inside crawler
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+
+        if (str_starts_with($authHeader, 'Basic ')) {
+            $encodedCredentials = substr($authHeader, 6);
+            $decodedCredentials = base64_decode($encodedCredentials);
+            
+            if (password_verify($decodedCredentials, getenv('SEARCH_INSIDE_WP_API_HASHED_TOKEN'))){
+                return $access;
+            }
+        }
+    }
 
     return new WP_Error(
         'rest_cannot_access',
@@ -607,12 +618,6 @@ function do_bypass_rest_api_auth( $user_id ) {
     if ( $is_admin ) {
         $bypass_rest_api_auth = true;
         return get_user_by('id', $user_id)->ID;
-    }
-
-    // user is not logged in, but request is cluster internal: force admin user
-    if ( isset( $_SERVER['SERVER_PORT'] ) && $_SERVER['SERVER_PORT'] == 8443 ) {
-        $bypass_rest_api_auth = true;
-        return get_user_by('login', 'admin')->ID;
     }
 
     // every other case just continue with user id
