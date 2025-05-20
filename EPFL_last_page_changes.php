@@ -32,7 +32,7 @@ function getLastRevisions( $data ){
     $name = $name ? $name : '';
     $limit = $data->get_param( 'limit' );
     $limit = $limit ? $limit : 5;
-    $sql = $wpdb->prepare( "SELECT wp_posts.post_title, wp_users.user_login AS username, post_modified AS last_modified FROM `wp_posts` 
+    $sql = $wpdb->prepare( "SELECT wp_posts.post_title, wp_users.user_login AS username, post_modified AS last_modified, wp_posts.guid AS post_url FROM `wp_posts` 
                             LEFT JOIN wp_users ON wp_users.ID = wp_posts.post_author 
                             WHERE wp_posts.post_title LIKE %s ORDER BY wp_posts.post_modified DESC LIMIT %d;", 
                             array(
