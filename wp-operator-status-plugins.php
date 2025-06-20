@@ -21,7 +21,7 @@ function report_plugins ($status) {
 function report_languages ($status) {
 	$status['languages'] = [];
 	if (function_exists('pll_languages_list')) {
-		$languages = pll_languages_list( ['fields' => 'locale'] );
+		$languages = pll_languages_list( ['fields' => 'slug'] );
 
 		foreach ($languages as $lang) {
 			$status['languages'][] = $lang;
