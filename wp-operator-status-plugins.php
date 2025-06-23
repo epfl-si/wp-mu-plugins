@@ -21,10 +21,13 @@ function report_plugins ($status) {
 function report_languages ($status) {
 	$status['languages'] = [];
 	if (function_exists('pll_languages_list')) {
-		$languages = pll_languages_list( ['fields' => 'slug'] );
+		$languages = PLL()->model->get_languages_list();
 
 		foreach ($languages as $lang) {
-			$status['languages'][] = $lang;
+			$language = new stdClass();
+			$language->locale = $lang->locale;
+			$language->slug = $lang->slug;
+			$status['languages'][] = $language;
 		}
 	}
 	return $status;
