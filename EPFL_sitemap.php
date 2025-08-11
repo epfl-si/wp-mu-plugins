@@ -29,7 +29,8 @@ function getSitemap() {
         error_log( 'Failed to retrieve data from the API.' );
         return NULL;
     } else {
-        return $response;
+        $xml = new SimpleXMLElement($response);
+        return $xml->asXML();
     }
 };
 
