@@ -23,13 +23,15 @@ function getSitemap() {
     curl_close($curl);
 
     if (isset($error_text)) {
-        error_log( "curl error: {$error_text} at {$url_api}" );
-        return NULL;
-    } elseif ($response === false || $response == '') {
-        error_log( 'Failed to retrieve data from the API.' );
-        return NULL;
+        return new WP_Error('curl_error', $error_text, array('status' => 500));
+    } elseif ($response === false || trim($response) == '') {
+        return new WP_Error('no_data', 'Failed to retrieve data from the API.', array('status' => 500));
     } else {
         $xml = simplexml_load_string($response);
+        if ($xml === false) {
+            return new WP_Error('invalid_xml', 'Invalid XML received from API', array('status' => 500));
+        }
+        header('Content-Type: application/xml; charset=UTF-8');
         echo $xml->asXML();
         exit; //Avoid wordpress do JSON.encode on the result
     }
