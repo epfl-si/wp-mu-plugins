@@ -25,12 +25,13 @@ function getSitemap() {
     if (isset($error_text)) {
         error_log( "curl error: {$error_text} at {$url_api}" );
         return NULL;
-    } elseif ($response === false) {
+    } elseif ($response === false || $response == '') {
         error_log( 'Failed to retrieve data from the API.' );
         return NULL;
     } else {
-        $xml = new SimpleXMLElement($response);
-        return $xml->asXML();
+        $xml = simplexml_load_string($response);
+        echo $xml->asXML();
+        exit; //Avoid wordpress do JSON.encode on the result
     }
 };
 
