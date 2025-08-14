@@ -60,7 +60,6 @@ function getSitemap() {
     header('Content-Type: application/xml; charset=UTF-8');
     echo $xml->asXML();
   }
-  die();
 };
 
 add_action( 'rest_api_init', function () {
@@ -73,6 +72,7 @@ add_action( 'rest_api_init', function () {
 add_filter( 'wp_sitemaps_enabled', function( $enabled ) {
   if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
     getSitemap();
+    die();
   }
   return '__return_false';
 });
