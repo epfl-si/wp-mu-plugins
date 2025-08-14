@@ -33,39 +33,46 @@
  */
 
 function getSitemap() {
-    $menu_api_host = "menu-api";
-    $menu_api_host_from_env = getenv('MENU_API_HOST');
-    if ($menu_api_host_from_env !== false && $menu_api_host_from_env !== '') {
-        $menu_api_host = $menu_api_host_from_env;
-    }
-    $url_api = 'http://' . $menu_api_host . ':3001/getSitemap';
+  $menu_api_host = "menu-api";
+  $menu_api_host_from_env = getenv('MENU_API_HOST');
+  if ($menu_api_host_from_env !== false && $menu_api_host_from_env !== '') {
+    $menu_api_host = $menu_api_host_from_env;
+  }
+  $url_api = 'http://' . $menu_api_host . ':3001/getSitemap';
 
-    $curl = curl_init($url_api);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($curl);
-    if (curl_errno($curl)) {
-        $error_text = curl_error($curl);
-    }
-    curl_close($curl);
+  $curl = curl_init($url_api);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  $response = curl_exec($curl);
+  if (curl_errno($curl)) {
+    $error_text = curl_error($curl);
+  }
+  curl_close($curl);
 
-    if (isset($error_text)) {
-        return new WP_Error('curl_error', $error_text, array('status' => 500));
-    } elseif ($response === false || trim($response) == '') {
-        return new WP_Error('no_data', 'Failed to retrieve data from the API.', array('status' => 500));
-    } else {
-        $xml = simplexml_load_string($response);
-        if ($xml === false) {
-            return new WP_Error('invalid_xml', 'Invalid XML received from API', array('status' => 500));
-        }
-        header('Content-Type: application/xml; charset=UTF-8');
-        echo $xml->asXML();
-        exit; //Avoid wordpress do JSON.encode on the result
+  if (isset($error_text)) {
+    return new WP_Error('curl_error', $error_text, array('status' => 500));
+  } elseif ($response === false || trim($response) == '') {
+    return new WP_Error('no_data', 'Failed to retrieve data from the API.', array('status' => 500));
+  } else {
+    $xml = simplexml_load_string($response);
+    if ($xml === false) {
+      return new WP_Error('invalid_xml', 'Invalid XML received from API', array('status' => 500));
     }
+    header('Content-Type: application/xml; charset=UTF-8');
+    echo $xml->asXML();
+  }
+  die();
 };
 
 add_action( 'rest_api_init', function () {
   register_rest_route( 'epfl/v1', '/sitemap', array(
-    'methods' => 'GET',
-    'callback' => 'getSitemap',
+  'methods' => 'GET',
+  'callback' => 'getSitemap',
   ));
+});
+
+add_filter( 'wp_sitemaps_enabled', function( $enabled ) {
+  if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
+    getSitemap();
+  }
+  return '__return_false';
 });
