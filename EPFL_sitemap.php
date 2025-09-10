@@ -33,14 +33,9 @@
  */
 
 function getSitemap() {
-  $menu_api_host = "menu-api";
-  $menu_api_host_from_env = getenv('MENU_API_HOST');
-  if ($menu_api_host_from_env !== false && $menu_api_host_from_env !== '') {
-    $menu_api_host = $menu_api_host_from_env;
-  }
-  $url_api = 'http://' . $menu_api_host . ':3001/getSitemap';
+  $menu_api_host = getenv('MENU_API_HOST') ?: "menu-api";
 
-  $curl = curl_init($url_api);
+  $curl = curl_init('http://' . $menu_api_host . ':3001/getSitemap');
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
   $response = curl_exec($curl);
   if (curl_errno($curl)) {
