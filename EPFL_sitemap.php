@@ -64,10 +64,9 @@ add_action( 'rest_api_init', function () {
   ));
 });
 
-add_filter( 'wp_sitemaps_enabled', function( $enabled ) {
+add_action( 'parse_request', function( $enabled ) {
   if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
     getSitemap();
     die();
   }
-  return '__return_false';
 });
