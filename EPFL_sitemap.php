@@ -55,14 +55,7 @@ function getSitemap() {
     header('Content-Type: application/xml; charset=UTF-8');
     echo $xml->asXML();
   }
-};
-
-add_action( 'rest_api_init', function () {
-  register_rest_route( 'epfl/v1', '/sitemap', array(
-  'methods' => 'GET',
-  'callback' => 'getSitemap',
-  ));
-});
+}
 
 add_action( 'parse_request', function( $enabled ) {
   if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
