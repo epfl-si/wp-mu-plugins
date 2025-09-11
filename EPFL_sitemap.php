@@ -32,7 +32,9 @@
  * along with EPFL Sitemap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-function getSitemap() {
+namespace EPFL_sitemap;
+
+function print_sitemap() {
   $menu_api_host = getenv('MENU_API_HOST') ?: "menu-api";
 
   $curl = curl_init('http://' . $menu_api_host . ':3001/getSitemap');
@@ -44,22 +46,30 @@ function getSitemap() {
   curl_close($curl);
 
   if (isset($error_text)) {
-    return new WP_Error('curl_error', $error_text, array('status' => 500));
+    fatal('curl_error', $error_text);
   } elseif ($response === false || trim($response) == '') {
-    return new WP_Error('no_data', 'Failed to retrieve data from the API.', array('status' => 500));
+	  fatal('no_data', 'Failed to retrieve data from the API.');
   } else {
     $xml = simplexml_load_string($response);
     if ($xml === false) {
-      return new WP_Error('invalid_xml', 'Invalid XML received from API', array('status' => 500));
+		fatal('invalid_xml', 'Invalid XML received from API');
     }
     header('Content-Type: application/xml; charset=UTF-8');
     echo $xml->asXML();
   }
 }
 
+function fatal ($error_short, $details) {
+	$error = "$error_short: $details";
+	error_log($error);
+	http_response_code(500);
+	print($error);
+	die();
+}
+
 add_action( 'parse_request', function( $enabled ) {
   if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
-    getSitemap();
+      print_sitemap();
     die();
   }
 });
