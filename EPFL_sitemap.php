@@ -57,7 +57,7 @@ function fatal ($error_short, $details) {
 
 add_action( 'parse_request', function() {
   if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
-      print_sitemap();
+    print_sitemap();
     die();
   }
 });
