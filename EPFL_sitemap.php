@@ -36,11 +36,11 @@ function print_sitemap() {
   if (isset($error_text)) {
     fatal('curl_error', $error_text);
   } elseif ($response === false || trim($response) == '') {
-	  fatal('no_data', 'Failed to retrieve data from the API.');
+    fatal('no_data', 'Failed to retrieve data from the API.');
   } else {
     $xml = simplexml_load_string($response);
     if ($xml === false) {
-		fatal('invalid_xml', 'Invalid XML received from API');
+      fatal('invalid_xml', 'Invalid XML received from API');
     }
     header('Content-Type: application/xml; charset=UTF-8');
     echo $xml->asXML();
@@ -48,14 +48,14 @@ function print_sitemap() {
 }
 
 function fatal ($error_short, $details) {
-	$error = "$error_short: $details";
-	error_log($error);
-	http_response_code(500);
-	print($error);
-	die();
+  $error = "$error_short: $details";
+  error_log($error);
+  http_response_code(500);
+  print($error);
+  die();
 }
 
-add_action( 'parse_request', function( $enabled ) {
+add_action( 'parse_request', function() {
   if ( isset( $_SERVER['REQUEST_URI'] ) && $_SERVER['REQUEST_URI'] === '/sitemap.xml' ) {
       print_sitemap();
     die();
