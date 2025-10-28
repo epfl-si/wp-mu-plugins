@@ -50,13 +50,26 @@ function nav_menu_function( $menu_id, $action, $action_label ) {
 }
 
 function user_function( $user_id, $action, $action_label ) {
-	callOPDo($action, 'User ' . $user_id . ' was ' . $action_label);
+	$user = get_user_by('id', $user_id);
+	callOPDo($action, 'User ' . $user->nickname . ' was ' . $action_label);
 }
 
 function option_function( $option, $value, $action, $old_value ) {
-	/*if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize( $value ) );
-	else if ($action == 'u') error_log( "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value) );
-	else if ($action == 'd') error_log( "Option deleted : $option" );*/
+	if (!str_starts_with($option, '_transient')) {
+		if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize($value));
+		else if ($action == 'u') callOPDo($action, "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value));
+		else if ($action == 'd') callOPDo($action, "Option deleted : $option");
+	}
+}
+
+function wpforms_function( $post_id, $post, $update ) {
+	if ( wp_is_post_revision( $post_id ) ) return;
+	$log_entry = sprintf(
+		"Form %s (ID %d) has been updated\n",
+		$post->post_title,
+		$post_id
+	);
+	callOPDo('u', $log_entry);
 }
 
 add_action( 'save_post', 'save_page_function', 10, 3 );
@@ -88,7 +101,24 @@ add_action( 'update_option', function( $option, $old_value, $value ) {
 add_action( 'deleted_option', function( $option ) {
 	option_function( $option, NULL, 'd', NULL );
 } );
-
+add_action( 'save_post_wpforms', 'wpforms_function', 10, 3 );
+add_action( 'wpforms_process_complete', 'my_wpforms_logger', 10, 4 );
+function my_wpforms_logger( $fields, $entry, $form_data, $entry_id ) {
+	$log_data = array(
+		'form_id'   => $form_data['id'],
+		'form_name' => $form_data['settings']['form_title'],
+		'entry_id'  => $entry_id,
+		'fields'    => $fields,
+		'user_ip'   => $_SERVER['REMOTE_ADDR'],
+		'user_id'   => get_current_user_id(),
+		'timestamp' => current_time('mysql'),
+	);
+	$log_file = WP_CONTENT_DIR . '/wpforms_log.txt';
+	file_put_contents( $log_file, print_r($log_data, true) . "\n", FILE_APPEND );
+	if ( defined('WP_DEBUG') && WP_DEBUG ) {
+		error_log( print_r($log_data, true) );
+	}
+}
 // TODO wpform, redirections
 
 function callOPDo($crudt, $description) {
@@ -103,6 +133,7 @@ function callOPDo($crudt, $description) {
 		"payload" => 'Site: ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '\n' . $description,
 		"source" => 'wordpress'
 	];
+	error_log(var_export($data, true));
 
 	$ch = curl_init($url);
 
