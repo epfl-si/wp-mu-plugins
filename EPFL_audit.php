@@ -55,7 +55,7 @@ function user_function( $user_id, $action, $action_label ) {
 }
 
 function option_function( $option, $value, $action, $old_value ) {
-	if (!str_starts_with($option, '_transient')) {
+	if (!str_contains($option, '_transient')) {
 		if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize($value));
 		else if ($action == 'u') callOPDo($action, "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value));
 		else if ($action == 'd') callOPDo($action, "Option deleted : $option");
@@ -137,9 +137,12 @@ function callOPDo($crudt, $description) {
 
 	$ch = curl_init($url);
 
+	curl_setopt($ch, CURLOPT_CAINFO, "/usr/local/share/ca-certificates/opdo-ca.crt");
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 	curl_setopt($ch, CURLOPT_POST, true);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); //getenv("API_KEY")
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, [
 		"Authorization: ApiKey " . getenv('OPDO_API_KEY'),
 		"Content-Type: application/json",
