@@ -20,120 +20,58 @@
  *
  */
 
-function save_page_function( $post_id, $post, $update ) {
-	if ( wp_is_post_autosave( $post_id ) or wp_is_post_revision( $post_id ) or !$update) {
-		return;
+/*
+add_action( 'admin_init', 'wpforms_export_all_function' );
+
+function wpforms_export_all_function() {
+	if (
+		isset( $_GET['page'], $_GET['view'], $_GET['action'] ) &&
+		$_GET['page'] === 'wpforms-tools' &&
+		$_GET['view'] === 'export' &&
+		$_GET['action'] === 'wpforms_tools_entries_export_download'
+	) {
+		//https://wordpress.localhost/wp-admin/admin.php?page=wpforms-tools&view=export&action=wpforms_tools_entries_export_download&nonce=066e6b1030&request_id=6f691964cbf467fe643478e8f0631620
+		error_log("TEST {$_GET['page']} - {$_GET['view']} - {$_GET['action']}");
+		$form_id = isset( $_GET['form'] ) ? intval( $_GET['form'] ) : 0;
+		$form = wpforms()->form->get( $form_id );
+		if ( ! empty( $form ) ) {
+			$form_data = wpforms_decode( $form->post_content );
+			$form_title = isset( $form_data['settings']['form_title'] ) ? $form_data['settings']['form_title'] : '';
+			$log_entry = sprintf(
+				"ALL entries has been exported for form %s (ID: %d)",
+				$form_title,
+				$form_id
+			);
+			error_log( $log_entry );
+		}
 	}
+}*/
 
-	if (in_array($post->post_type, ['post', 'page'])) {
-		callOPDo('u',$post->post_type . ' "' . get_the_title($post_id) . '" (' . get_page_link($post_id) . ') was updated');
-	} elseif ($post->post_type == 'nav_menu_item') {
-		$menu_item = wp_setup_nav_menu_item( get_post( $post_id ) );
-		callOPDo('u', $post->post_type . ' "' . $post_id . ' - ' . $menu_item->title . '" (' . $menu_item->url . ') was updated');
-	}
-}
+add_action( 'simple_history/log/inserted', 'callOPDo', 10, 2 );
 
-function delete_page_function( $post_id ) {
-	$post = get_post($post_id);
-	if ( wp_is_post_revision( $post_id ) ){
-		return;
-	}
-	if (in_array($post->post_type, ['post', 'page'])) {
-		callOPDo('d', $post->post_type . ' "' . get_the_title($post_id) . '" (' . get_page_link($post_id) . ') was deleted');
-	} elseif ($post->post_type == 'nav_menu_item') {
-		callOPDo('d', $post->post_type . ' ' . $post_id . ') was deleted');
-	}
-}
-
-function nav_menu_function( $menu_id, $action, $action_label ) {
-	callOPDo($action, 'Menu ' . $menu_id . ' was ' . $action_label);
-}
-
-function user_function( $user_id, $action, $action_label ) {
-	$user = get_user_by('id', $user_id);
-	callOPDo($action, 'User ' . $user->nickname . ' was ' . $action_label);
-}
-
-function option_function( $option, $value, $action, $old_value ) {
-	if (!str_starts_with($option, '_')) {
-		if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize($value));
-		else if ($action == 'u') callOPDo($action, "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value));
-		else if ($action == 'd') callOPDo($action, "Option deleted : $option");
-	}
-}
-
-function wpforms_function( $post_id, $post, $update ) {
-	if ( wp_is_post_revision( $post_id ) ) return;
-	$log_entry = sprintf(
-		"Form %s (ID %d) has been updated\n",
-		$post->post_title,
-		$post_id
-	);
-	callOPDo('u', $log_entry);
-}
-
-add_action( 'save_post', 'save_page_function', 10, 3 );
-add_action( 'delete_post', 'delete_page_function', 10 );
-add_action( 'wp_create_nav_menu', function( $menu_id ) {
-	nav_menu_function( $menu_id, 'c', 'created' );
-}, 10 );
-add_action( 'wp_update_nav_menu', function( $menu_id ) {
-	nav_menu_function( $menu_id, 'u', 'updated' );
-}, 10 );
-add_action( 'wp_delete_nav_menu', function( $menu_id ) {
-	nav_menu_function( $menu_id, 'd', 'deleted' );
-}, 10 );
-add_action( 'user_register', function( $user_id ) {
-	user_function( $user_id, 'c', 'created' );
-}, 10, 1 );
-add_action( 'profile_update', function( $user_id ) {
-	user_function( $user_id, 'u', 'updated' );
-}, 10, 2 );
-add_action( 'delete_user', function( $user_id ) {
-	user_function( $user_id, 'd', 'deleted' );
-}, 10, 3 );
-add_action( 'add_option', function( $option, $value ) {
-	option_function( $option, $value, 'c', NULL );
-}, 10, 2 );
-add_action( 'update_option', function( $option, $old_value, $value ) {
-	option_function( $option, $value, 'u', $old_value );
-}, 10, 3 );
-add_action( 'deleted_option', function( $option ) {
-	option_function( $option, NULL, 'd', NULL );
-} );
-add_action( 'save_post_wpforms', 'wpforms_function', 10, 3 );
-add_action( 'wpforms_process_complete', 'my_wpforms_logger', 10, 4 );
-function my_wpforms_logger( $fields, $entry, $form_data, $entry_id ) {
-	$log_data = array(
-		'form_id'   => $form_data['id'],
-		'form_name' => $form_data['settings']['form_title'],
-		'entry_id'  => $entry_id,
-		'fields'    => $fields,
-		'user_ip'   => $_SERVER['REMOTE_ADDR'],
-		'user_id'   => get_current_user_id(),
-		'timestamp' => current_time('mysql'),
-	);
-	$log_file = WP_CONTENT_DIR . '/wpforms_log.txt';
-	file_put_contents( $log_file, print_r($log_data, true) . "\n", FILE_APPEND );
-	if ( defined('WP_DEBUG') && WP_DEBUG ) {
-		error_log( print_r($log_data, true) );
-	}
-}
 // TODO wpform, redirections
 
-function callOPDo($crudt, $description) {
+function callOPDo($insert_id, $context) {
 	// Locally
 	if (!getenv('OPDO_URL')) return;
+
+	$payload = array(
+		'log_id'   => $insert_id,
+		'message'  => isset( $context['message'] ) ? $context['message'] : '',
+		'context'  => $context,
+		'site_url' => get_site_url(),
+		'timestamp' => current_time( 'mysql' ),
+	);
 
 	$user = wp_get_current_user();
 	$url = getenv('OPDO_URL');
 
 	$data = [
 		"@timestamp" => (new DateTime())->format(DateTime::ATOM),
-		"crudt" => $crudt,
+		"crudt" => $payload['log_id']['_message_key'],
 		"handled_id" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
 		"handler_id" => $user->user_email,
-		"payload" => 'Site: ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '\n' . $description,
+		"payload" => var_export($payload, true),
 		"source" => 'wordpress'
 	];
 	error_log(var_export($data, true));
