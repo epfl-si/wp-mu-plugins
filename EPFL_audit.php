@@ -55,7 +55,7 @@ function user_function( $user_id, $action, $action_label ) {
 }
 
 function option_function( $option, $value, $action, $old_value ) {
-	if (!str_contains($option, '_transient')) {
+	if (!str_starts_with($option, '_')) {
 		if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize($value));
 		else if ($action == 'u') callOPDo($action, "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value));
 		else if ($action == 'd') callOPDo($action, "Option deleted : $option");
