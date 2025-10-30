@@ -122,6 +122,9 @@ function my_wpforms_logger( $fields, $entry, $form_data, $entry_id ) {
 // TODO wpform, redirections
 
 function callOPDo($crudt, $description) {
+	// Locally
+	if (!getenv('OPDO_URL')) return;
+
 	$user = wp_get_current_user();
 	$url = getenv('OPDO_URL');
 
