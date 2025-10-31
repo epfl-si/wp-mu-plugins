@@ -189,7 +189,6 @@ function write_entry_log($entry, $action) {
 	callOPDo( $log_entry, $action);
 }
 
-// TODO redirections
 function callOPDo($payload, $action) {
 	$user = wp_get_current_user();
 	$url = getenv('OPDO_URL');
