@@ -32,7 +32,7 @@ add_action( 'admin_init', 'wpforms_data_actions_from_trash_function' );
 add_action( 'admin_init', 'wpforms_data_edit_function' );
 
 function simple_history_function($insert_id) {
-	if (!isset($payload['log_id']['_message_key'])) return;
+	if (!isset($insert_id['_message_key'])) return;
 	$payload = array(
 		'log_id'   => $insert_id,
 		'site_url' => get_site_url()
