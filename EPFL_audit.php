@@ -104,7 +104,7 @@ function wpforms_payments_data_list_function() {
 			$_GET['form_id']
 		);
 		apply_filters('simple_history_log',$log_entry);
-		callOPDo( $log_entry, 'wpform_payment_data_list');
+		callOPDo( $log_entry, 'wpform_data_list_payment');
 	}
 }
 
@@ -130,12 +130,12 @@ function wpforms_data_delete_function() {
 			$entry = wpforms()->entry->get( $_GET['entry_id']);
 			$entry->payment = wpforms()->payment->get( $entry->payment_id );
 			write_entry_log($entry,
-			(isset($_GET['type']) && $_GET['type'] === 'payment') ? 'wpform_payment_data_delete_details' : 'wpform_data_delete_details');
+			(isset($_GET['type']) && $_GET['type'] === 'payment') ? 'wpform_data_delete_details_payment' : 'wpform_data_delete_details');
 		} else if (isset($_GET['payment_id'])) {
 			$payment = wpforms()->payment->get( $_GET['payment_id'] );
 			$entry = wpforms()->entry->get( $payment->entry_id );
 			$entry->payment = $payment;
-			write_entry_log($entry, 'wpform_payment_data_delete_details');
+			write_entry_log($entry, 'wpform_data_delete_details_payment');
 		}
 	}
 }
