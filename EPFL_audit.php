@@ -28,6 +28,7 @@ add_action( 'admin_init', 'wpforms_data_list_function' );
 add_action( 'admin_init', 'wpforms_payments_data_list_function' );
 add_action( 'admin_init', 'wpform_data_read_function' );
 add_action( 'admin_init', 'wpforms_data_delete_function' );
+add_action( 'admin_init', 'wpforms_data_actions_from_trash_function' );
 add_action( 'admin_init', 'wpforms_data_edit_function' );
 
 function simple_history_function($insert_id) {
@@ -140,6 +141,16 @@ function wpforms_data_delete_function() {
 	}
 }
 
+function wpforms_data_actions_from_trash_function() {
+	if (
+		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['entry_id'], $_GET['status'] ) &&
+		$_GET['page'] === 'wpforms-entries' &&
+		$_GET['view'] === 'list' && ($_GET['status'] === 'trash' || $_GET['status'] === 'spam')
+	) {
+		write_entry_log(wpforms()->entry->get( $_GET['entry_id'] ), 'wpform_data_' . str_replace('_', '-', $_GET['action']) . '_details');
+	}
+}
+
 function wpforms_data_edit_function() {
 	if (
 		isset( $_POST['action'] ) &&
@@ -162,7 +173,10 @@ function write_entry_log($entry, $action) {
 	$verb = $parts[2];
 	$past_map = [
 		'read'   => 'read',
-		'delete' => 'deleted'
+		'delete' => 'deleted',
+		'restore' => 'restored',
+		'spam' => 'marked as spam',
+		'mark-not-spam' => 'marked as not a spam',
 	];
 	$log_entry = sprintf(
 		"WPForm entry has been %s for form '%s' (ID: %d): %s",
