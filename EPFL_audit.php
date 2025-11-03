@@ -30,6 +30,8 @@ add_action( 'admin_init', 'wpform_data_read_function' );
 add_action( 'admin_init', 'wpforms_data_delete_function' );
 add_action( 'admin_init', 'wpforms_data_actions_from_trash_function' );
 add_action( 'admin_init', 'wpforms_data_edit_function' );
+add_action( 'admin_init', 'wpform_data_read_payment_function' );
+add_action( 'wpforms_process_complete', 'wpform_data_submit_details' );
 
 function simple_history_function($insert_id) {
 	if (!isset($insert_id['_message_key'])) return;
@@ -120,6 +122,18 @@ function wpform_data_read_function() {
 	}
 }
 
+function wpform_data_read_payment_function() {
+	if (
+		isset( $_GET['page'], $_GET['view'], $_GET['payment_id'] ) &&
+		$_GET['page'] === 'wpforms-payments' &&
+		($_GET['view'] === 'payment')
+	) {
+		$payment = wpforms()->payment->get( $_GET['payment_id']);
+		$entry = wpforms()->entry->get( $payment->entry_id );
+		write_entry_log( $entry,'wpform_data_read_details_payment');
+	}
+}
+
 function wpforms_data_delete_function() {
 	if (
 		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['entry_id'] ) &&
@@ -153,11 +167,16 @@ function wpforms_data_actions_from_trash_function() {
 
 function wpforms_data_edit_function() {
 	if (
-		isset( $_POST['action'] ) &&
-		$_POST['action'] === 'wpforms_submit'
+		isset( $_POST['action'], $_POST['wpforms'] ) &&
+		$_POST['action'] === 'wpforms_submit' && isset($_POST['wpforms']['entry_id'])
 	) {
 		write_entry_log($_POST['wpforms'], 'wpform_data_edit_details');
 	}
+}
+
+function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
+	$entry['entry_id'] = $entry_id;
+	write_entry_log($entry, 'wpform_data_submit_details');
 }
 
 function write_entry_log($entry, $action) {
