@@ -22,14 +22,11 @@
 
 add_action( 'simple_history/log/inserted', 'simple_history_function', 10, 2 );
 
-add_action( 'admin_init', 'wpforms_export_all_function' );
-add_action( 'admin_init', 'wpforms_export_single_entry_function' );
+add_action( 'admin_init', 'wpforms_export_function' );
 add_action( 'admin_init', 'wpforms_data_list_function' );
-add_action( 'admin_init', 'wpforms_payments_data_list_function' );
 add_action( 'admin_init', 'wpform_data_read_function' );
-add_action( 'admin_init', 'wpforms_data_delete_function' );
-add_action( 'admin_init', 'wpforms_data_actions_from_trash_function' );
 add_action( 'admin_init', 'wpforms_data_edit_function' );
+add_action( 'admin_init', 'wpforms_handle_entry_action' );
 add_action( 'admin_init', 'wpform_data_read_payment_function' );
 add_action( 'wpforms_process_complete', 'wpform_data_submit_details' );
 
@@ -42,40 +39,32 @@ function simple_history_function($insert_id) {
 	callOPDo(json_encode($payload), $payload['log_id']['_message_key']);
 }
 
-function wpforms_export_all_function() {
+function wpforms_export_function() {
 	if (
 		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['request_id'] ) &&
 		$_GET['page'] === 'wpforms-tools' &&
-		$_GET['view'] === 'export' &&
-		$_GET['action'] === 'wpforms_tools_entries_export_download'
+		$_GET['view'] === 'export'
 	) {
-		$request_id = sanitize_text_field($_GET['request_id']);
-		$request_data = get_option( '_wpforms_transient_wpforms-tools-entries-export-request-' . $request_id );
-		$log_entry = sprintf(
-			"All entries has been exported for form %s (ID: %d)",
-			$request_data['form_data']['settings']['form_title'],
-			$request_data['form_data']['id']
-		);
-		apply_filters('simple_history_log',$log_entry);
-		callOPDo( $log_entry, 'wpform_export_all');
-	}
-}
-
-function wpforms_export_single_entry_function() {
-	if (
-		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['request_id'] ) &&
-		$_GET['page'] === 'wpforms-tools' &&
-		$_GET['view'] === 'export' &&
-		$_GET['action'] === 'wpforms_tools_single_entry_export_download'
-	) {
-		$log_entry = sprintf(
-			"Entry has been exported for form %s (ID: %d): %s",
-			get_the_title( $_GET['form'] ),
-			$_GET['form'],
-			json_encode(wpforms()->entry->get( $_GET['entry_id'] ))
-		);
+		if ($_GET['action'] === 'wpforms_tools_entries_export_download') {
+			$action = 'wpform_export_all';
+			$request_id = sanitize_text_field($_GET['request_id']);
+			$request_data = get_option( '_wpforms_transient_wpforms-tools-entries-export-request-' . $request_id );
+			$log_entry = sprintf(
+				"All entries has been exported for form %s (ID: %d)",
+				$request_data['form_data']['settings']['form_title'],
+				$request_data['form_data']['id']
+			);
+		} else if ($_GET['action'] === 'wpforms_tools_single_entry_export_download') {
+			$action = 'wpform_export_single_entry';
+			$log_entry = sprintf(
+				"Entry has been exported for form %s (ID: %d): %s",
+				get_the_title( $_GET['form'] ),
+				$_GET['form'],
+				json_encode(wpforms()->entry->get( $_GET['entry_id'] ))
+			);
+		}
 		apply_filters('simple_history_log',substr($log_entry,0, 250) . ' ...');
-		callOPDo( $log_entry, 'wpform_export_single_entry');
+		callOPDo( $log_entry, $action);
 	}
 }
 
@@ -83,31 +72,20 @@ function wpforms_data_list_function() {
 	if (
 		isset( $_GET['page'], $_GET['view'], $_GET['form_id'] ) &&
 		$_GET['page'] === 'wpforms-entries' &&
-		$_GET['view'] === 'list' && !isset($_GET['action']) && (!isset($_GET['type']) || $_GET['type'] !== 'payment')
+		$_GET['view'] === 'list' && !isset($_GET['action'])
 	) {
+		$type = 'entries';
+		if ($_GET['type'] === 'payment') {
+			$type = 'payments';
+		}
 		$log_entry = sprintf(
-			"All entries has been read for form '%s' (ID: %d)",
+			"All %s has been read for form '%s' (ID: %d)",
+			$type,
 			get_the_title( $_GET['form_id'] ),
 			$_GET['form_id']
 		);
 		apply_filters('simple_history_log',$log_entry);
-		callOPDo( $log_entry, 'wpform_data_list');
-	}
-}
-
-function wpforms_payments_data_list_function() {
-	if (
-		isset( $_GET['page'], $_GET['view'], $_GET['form_id'], $_GET['type'] ) &&
-		$_GET['page'] === 'wpforms-entries' &&
-		$_GET['view'] === 'list' && !isset($_GET['action']) && $_GET['type'] === 'payment'
-	) {
-		$log_entry = sprintf(
-			"All payments has been read for form '%s' (ID: %d)",
-			get_the_title( $_GET['form_id'] ),
-			$_GET['form_id']
-		);
-		apply_filters('simple_history_log',$log_entry);
-		callOPDo( $log_entry, 'wpform_data_list_payment');
+		callOPDo( $log_entry, 'wpform_data_list_' . $type);
 	}
 }
 
@@ -134,34 +112,38 @@ function wpform_data_read_payment_function() {
 	}
 }
 
-function wpforms_data_delete_function() {
-	if (
-		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['entry_id'] ) &&
-		$_GET['page'] === 'wpforms-entries' &&
-		($_GET['view'] === 'list' || $_GET['view'] === 'payment') &&
-		($_GET['action'] === 'trash' || $_GET['action'] === 'delete')
-	) {
-		if (isset($_GET['entry_id'])) {
-			$entry = wpforms()->entry->get( $_GET['entry_id']);
-			$entry->payment = wpforms()->payment->get( $entry->payment_id );
-			write_entry_log($entry,
-			(isset($_GET['type']) && $_GET['type'] === 'payment') ? 'wpform_data_delete_details_payment' : 'wpform_data_delete_details');
-		} else if (isset($_GET['payment_id'])) {
-			$payment = wpforms()->payment->get( $_GET['payment_id'] );
-			$entry = wpforms()->entry->get( $payment->entry_id );
-			$entry->payment = $payment;
-			write_entry_log($entry, 'wpform_data_delete_details_payment');
-		}
+function wpforms_handle_entry_action() {
+	if (empty($_GET['page']) || $_GET['page'] !== 'wpforms-entries') {
+		return;
 	}
-}
 
-function wpforms_data_actions_from_trash_function() {
-	if (
-		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['entry_id'], $_GET['status'] ) &&
-		$_GET['page'] === 'wpforms-entries' &&
-		$_GET['view'] === 'list' && ($_GET['status'] === 'trash' || $_GET['status'] === 'spam')
-	) {
-		write_entry_log(wpforms()->entry->get( $_GET['entry_id'] ), 'wpform_data_' . str_replace('_', '-', $_GET['action']) . '_details');
+	$view       = isset($_GET['view']) ? sanitize_text_field($_GET['view']) : '';
+	$action     = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'read';
+	$status     = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+	$type       = isset($_GET['type']) ? sanitize_text_field($_GET['type']) : '';
+	$entry_id   = isset($_GET['entry_id']) ? absint($_GET['entry_id']) : 0;
+	$payment_id = isset($_GET['payment_id']) ? absint($_GET['payment_id']) : 0;
+
+	if (!$entry_id && !$payment_id) {
+		return;
+	}
+
+	$entry   = $entry_id ? wpforms()->entry->get($entry_id) : null;
+	$payment = $payment_id ? wpforms()->payment->get($payment_id) : null;
+
+	if ($payment && !$entry && !empty($payment->entry_id)) {
+		$entry = wpforms()->entry->get($payment->entry_id);
+	}
+	if ($entry && !empty($entry->payment_id) && !$payment) {
+		$payment = wpforms()->payment->get($entry->payment_id);
+	}
+	if ($entry && $payment) {
+		$entry->payment = $payment;
+	}
+
+	$log_key = 'wpform_data_' . str_replace('_', '-', $action) . '_details_' . $type;
+	if ($entry && $log_key) {
+		write_entry_log($entry, $log_key);
 	}
 }
 
@@ -174,7 +156,7 @@ function wpforms_data_edit_function() {
 	}
 }
 
-function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
+function wpform_data_submit_details( $entry_id ) {
 	$entry['entry_id'] = $entry_id;
 	write_entry_log($entry, 'wpform_data_submit_details');
 }
