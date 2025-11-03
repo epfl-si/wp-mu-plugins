@@ -218,11 +218,11 @@ function callOPDo($payload, $action) {
 		"crudt" => $action,
 		"handled_id" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
 		"handler_id" => $user->user_email,
-		"payload" => $payload,
-		"source" => 'wordpress'
+		"source" => 'wordpress',
+		"payload" => $payload
 	];
 
-	error_log(var_export($data, true));
+	error_log(substr(var_export($data, true), 0, 1024));
 
 	// Locally
 	if (!getenv('OPDO_URL')) return;
