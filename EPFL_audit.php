@@ -117,8 +117,8 @@ function wpform_data_read_function() {
 		$_GET['page'] === 'wpforms-entries' &&
 		($_GET['view'] === 'edit' || $_GET['view'] === 'details' || $_GET['view'] === 'print')
 	) {
-		write_entry_log(wpforms()->entry->get( $_GET['entry_id'] ),
-			$_GET['view'] === 'print' ? 'wpform_data_print_details' : 'wpform_data_read_details');
+		$entry = wpforms()->entry->get( $_GET['entry_id'] );
+		write_entry_log($entry, 'wpform_data_' . $_GET['view'] . '_details');
 	}
 }
 
@@ -196,6 +196,7 @@ function write_entry_log($entry, $action) {
 		'restore' => 'restored',
 		'spam' => 'marked as spam',
 		'mark-not-spam' => 'marked as not a spam',
+		'details' => 'read'
 	];
 	$log_entry = sprintf(
 		"WPForm entry has been %s for form '%s' (ID: %d): %s",
