@@ -30,6 +30,15 @@ add_action( 'admin_init', 'wpforms_handle_entry_action' );
 add_action( 'admin_init', 'wpform_data_read_payment_function' );
 add_action( 'admin_init', 'wpform_data_delete_payment_function' );
 add_action( 'wpforms_process_complete', 'wpform_data_submit_details', 10, 4 );
+add_action( 'add_option', function( $option, $value ) {
+	option_function( $option, $value, 'c', NULL );
+}, 10, 2 );
+add_action( 'update_option', function( $option, $old_value, $value ) {
+	option_function( $option, $value, 'u', $old_value );
+}, 10, 3 );
+add_action( 'deleted_option', function( $option ) {
+	option_function( $option, NULL, 'd', NULL );
+}, 10, 1 );
 
 function simple_history_function($insert_id) {
 	if (!isset($insert_id['_message_key'])) return;
@@ -172,7 +181,11 @@ function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
 	write_entry_log($entry, 'wpform_data_submit_details');
 }
 
-
+function option_function( $option, $value, $action, $old_value ) {
+	if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize( $value ) );
+	else if ($action == 'u') error_log( "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value) );
+	else if ($action == 'd') error_log( "Option deleted : $option" );
+ }
 function write_entry_log($entry, $action) {
 	$form_id = 0;
 	if ( is_object( $entry ) && isset( $entry->id ) ) {
