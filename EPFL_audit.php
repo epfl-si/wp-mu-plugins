@@ -119,9 +119,7 @@ function wpform_data_delete_payment_function() {
 		$_GET['page'] === 'wpforms-payments' &&
 		($_GET['action'] === 'delete')
 	) {
-		$payment = wpforms()->payment->get( $_GET['payment_id']);
-		$entry = wpforms()->entry->get( $payment->entry_id );
-		write_entry_log( $entry,'wpform_data_delete_details_payment');
+		callOPDo( "Payment {$_GET['payment_id']} has been deleted",'wpform_data_delete_details_payment');
 	}
 }
 
