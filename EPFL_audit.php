@@ -174,6 +174,7 @@ function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
 	write_entry_log($entry, 'wpform_data_submit_details');
 }
 
+
 function write_entry_log($entry, $action) {
 	$form_id = 0;
 	if ( is_object( $entry ) && isset( $entry->id ) ) {
