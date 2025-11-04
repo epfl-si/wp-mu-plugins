@@ -28,7 +28,8 @@ add_action( 'admin_init', 'wpform_data_read_function' );
 add_action( 'admin_init', 'wpforms_data_edit_function' );
 add_action( 'admin_init', 'wpforms_handle_entry_action' );
 add_action( 'admin_init', 'wpform_data_read_payment_function' );
-add_action( 'wpforms_process_complete', 'wpform_data_submit_details' );
+add_action( 'admin_init', 'wpform_data_delete_payment_function' );
+add_action( 'wpforms_process_complete', 'wpform_data_submit_details', 10, 4 );
 
 function simple_history_function($insert_id) {
 	if (!isset($insert_id['_message_key'])) return;
@@ -41,11 +42,11 @@ function simple_history_function($insert_id) {
 
 function wpforms_export_function() {
 	if (
-		isset( $_GET['page'], $_GET['view'], $_GET['action'], $_GET['request_id'] ) &&
+		isset( $_GET['page'], $_GET['view'], $_GET['action'] ) &&
 		$_GET['page'] === 'wpforms-tools' &&
 		$_GET['view'] === 'export'
 	) {
-		if ($_GET['action'] === 'wpforms_tools_entries_export_download') {
+		if ($_GET['action'] === 'wpforms_tools_entries_export_download' && isset($_GET['request_id'])) {
 			$action = 'wpform_export_all';
 			$request_id = sanitize_text_field($_GET['request_id']);
 			$request_data = get_option( '_wpforms_transient_wpforms-tools-entries-export-request-' . $request_id );
@@ -112,6 +113,18 @@ function wpform_data_read_payment_function() {
 	}
 }
 
+function wpform_data_delete_payment_function() {
+	if (
+		isset( $_GET['page'], $_GET['action'], $_GET['payment_id'] ) &&
+		$_GET['page'] === 'wpforms-payments' &&
+		($_GET['action'] === 'delete')
+	) {
+		$payment = wpforms()->payment->get( $_GET['payment_id']);
+		$entry = wpforms()->entry->get( $payment->entry_id );
+		write_entry_log( $entry,'wpform_data_delete_details_payment');
+	}
+}
+
 function wpforms_handle_entry_action() {
 	if (empty($_GET['page']) || $_GET['page'] !== 'wpforms-entries') {
 		return;
@@ -156,7 +169,7 @@ function wpforms_data_edit_function() {
 	}
 }
 
-function wpform_data_submit_details( $entry_id ) {
+function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
 	$entry['entry_id'] = $entry_id;
 	write_entry_log($entry, 'wpform_data_submit_details');
 }
