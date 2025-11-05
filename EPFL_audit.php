@@ -41,12 +41,13 @@ add_action( 'deleted_option', function( $option ) {
 }, 10, 1 );
 
 function simple_history_function($insert_id) {
-	if (!isset($insert_id['_message_key'])) return;
-	$payload = array(
-		'log_id'   => $insert_id,
-		'site_url' => get_site_url()
-	);
-	callOPDo(json_encode($payload), $payload['log_id']['_message_key']);
+	if (array_key_exists('_message_key', $insert_id)) {
+		$payload = array(
+			'log_id' => $insert_id,
+			'site_url' => get_site_url()
+		);
+		callOPDo(json_encode($payload), $payload['log_id']['_message_key']);
+	}
 }
 
 function wpforms_export_function() {
@@ -73,7 +74,7 @@ function wpforms_export_function() {
 				json_encode(wpforms()->entry->get( $_GET['entry_id'] ))
 			);
 		}
-		apply_filters('simple_history_log',substr($log_entry,0, 250) . ' ...');
+		log_on_simple_history($log_entry);
 		callOPDo( $log_entry, $action);
 	}
 }
@@ -94,7 +95,7 @@ function wpforms_data_list_function() {
 			get_the_title( $_GET['form_id'] ),
 			$_GET['form_id']
 		);
-		apply_filters('simple_history_log',$log_entry);
+		log_on_simple_history($log_entry);
 		callOPDo( $log_entry, 'wpform_data_list_' . $type);
 	}
 }
@@ -182,10 +183,27 @@ function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
 }
 
 function option_function( $option, $value, $action, $old_value ) {
-	if ($action == 'c') callOPDo($action, "Option added $option = " . maybe_serialize( $value ) );
-	else if ($action == 'u') error_log( "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value) );
-	else if ($action == 'd') error_log( "Option deleted : $option" );
+	if (str_contains($option, '_transient') || str_starts_with($option, '_') || str_starts_with($option, 'simple_history')) return;
+	$log_entry = '';
+	if ($action == 'c') {
+		$log_entry = "Option added $option = " . maybe_serialize($value);
+	} else if ($action == 'u') {
+		$log_entry = "Option modified : $option from " . maybe_serialize($old_value) . " to " . maybe_serialize($value);
+	} else if ($action == 'd') {
+		$log_entry = "Option deleted : $option";
+	}
+	log_on_simple_history($log_entry);
+	callOPDo($action, $log_entry);
  }
+
+ function log_on_simple_history($log_entry) {
+	 if (strlen($log_entry) > 250) {
+		 apply_filters('simple_history_log', substr($log_entry, 0, 250) . ' ...');
+	 } else {
+		 apply_filters('simple_history_log', $log_entry);
+	 }
+ }
+
 function write_entry_log($entry, $action) {
 	$form_id = 0;
 	if ( is_object( $entry ) && isset( $entry->id ) ) {
@@ -212,7 +230,7 @@ function write_entry_log($entry, $action) {
 		$form_id,
 		json_encode($entry)
 	);
-	apply_filters('simple_history_log',substr($log_entry,0, 250) . ' ...');
+	log_on_simple_history($log_entry);
 	callOPDo( $log_entry, $action);
 }
 
