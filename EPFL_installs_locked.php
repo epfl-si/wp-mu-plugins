@@ -104,6 +104,7 @@ function EPFL_remove_admin_submenus() {
         remove_submenu_page( 'themes.php', 'themes.php' );
 
         remove_menu_page('enlighter-appearance');
+		remove_menu_page( 'simple_history_admin_menu_page' );
 
         // Hide customize page (there is no other way to do it)
         global $submenu;
