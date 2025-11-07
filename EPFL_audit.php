@@ -193,7 +193,7 @@ function option_function( $option, $value, $action, $old_value ) {
 		$log_entry = "Option deleted : $option";
 	}
 	log_on_simple_history($log_entry);
-	callOPDo($action, $log_entry);
+	callOPDo($log_entry, $action);
  }
 
  function log_on_simple_history($log_entry) {
