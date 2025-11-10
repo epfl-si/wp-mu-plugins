@@ -235,44 +235,46 @@ function write_entry_log($entry, $action) {
 }
 
 function callOPDo($payload, $action) {
-	$user = wp_get_current_user();
-	$url = getenv('OPDO_URL');
+	if ( function_exists( 'wp_get_current_user' ) ) {
+		$user = wp_get_current_user();
+		$url = getenv('OPDO_URL');
 
-	$data = [
-		"@timestamp" => (new DateTime())->format(DateTime::ATOM),
-		"crudt" => $action,
-		"handled_id" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
-		"handler_id" => $user->user_email,
-		"source" => 'wordpress',
-		"payload" => $payload
-	];
+		$data = [
+			"@timestamp" => (new DateTime())->format(DateTime::ATOM),
+			"crudt" => $action,
+			"handled_id" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+			"handler_id" => $user->user_email,
+			"source" => 'wordpress',
+			"payload" => $payload
+		];
 
-	error_log(substr(var_export($data, true), 0, 1024));
+		error_log(substr(var_export($data, true), 0, 1024));
 
-	// Locally
-	if (!getenv('OPDO_URL')) return;
+		// Locally
+		if (!getenv('OPDO_URL')) return;
 
-	$ch = curl_init($url);
+		$ch = curl_init($url);
 
-	curl_setopt($ch, CURLOPT_CAINFO, "/usr/local/share/ca-certificates/opdo-ca.crt");
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, [
-		"Authorization: ApiKey " . getenv('OPDO_API_KEY'),
-		"Content-Type: application/json",
-		"Accept: application/json"
-	]);
+		curl_setopt($ch, CURLOPT_CAINFO, "/usr/local/share/ca-certificates/opdo-ca.crt");
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+			"Authorization: ApiKey " . getenv('OPDO_API_KEY'),
+			"Content-Type: application/json",
+			"Accept: application/json"
+		]);
 
-	$response = curl_exec($ch);
+		$response = curl_exec($ch);
 
-	if (curl_errno($ch)) {
-		error_log('ERROR: ' . curl_error($ch));
-	} else {
-		error_log("Response: " . $response);
+		if (curl_errno($ch)) {
+			error_log('ERROR: ' . curl_error($ch));
+		} else {
+			error_log("Response: " . $response);
+		}
+
+		curl_close($ch);
 	}
-
-	curl_close($ch);
 }
