@@ -86,7 +86,7 @@ function wpforms_data_list_function() {
 		$_GET['view'] === 'list' && !isset($_GET['action'])
 	) {
 		$type = 'entries';
-		if ($_GET['type'] === 'payment') {
+		if ( isset($_GET['type']) && $_GET['type'] === 'payment' ) {
 			$type = 'payments';
 		}
 		$log_entry = sprintf(
