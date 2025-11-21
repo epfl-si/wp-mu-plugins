@@ -20,7 +20,74 @@
  *
  */
 
+//======================================================================
+// Utilities
+//======================================================================
+
+function log_on_simple_history($log_entry) {
+	// don't allow a too long $log_entry, as it can exceed the simple history field limit in DB
+	if (strlen($log_entry) > 250) {
+		apply_filters('simple_history_log', substr($log_entry, 0, 250) . ' ...');
+	} else {
+		apply_filters('simple_history_log', $log_entry);
+	}
+}
+
+function write_entry_log($entry, $action) {
+	$form_id = 0;
+	if ( is_object( $entry ) && isset( $entry->id ) ) {
+		$form_id = $entry->id;
+	} elseif ( is_array( $entry ) && isset( $entry['id'] ) ) {
+		$form_id = $entry['id'];
+	} elseif ( is_object( $entry ) && isset( $entry->form_id ) ) {
+		$form_id = $entry->form_id;
+	}
+	$parts = explode('_', $action);
+	$verb = $parts[2];
+	$past_map = [
+		'read'   => 'read',
+		'delete' => 'deleted',
+		'restore' => 'restored',
+		'spam' => 'marked as spam',
+		'mark-not-spam' => 'marked as not a spam',
+		'details' => 'read'
+	];
+	$log_entry = sprintf(
+		"WPForm entry has been %s for form '%s' (ID: %d): %s",
+		$past_map[$verb] ?? $verb . 'ed',
+		get_the_title( $form_id ),
+		$form_id,
+		json_encode($entry)
+	);
+	log_on_simple_history($log_entry);
+	create_opdo_push_task( $log_entry, $action);
+}
+
+function create_opdo_push_task($payload, $action) { # TODO ask to Robert the payload limit characters and ensure this limit with our DB
+	as_enqueue_async_action('opdo_log', [$payload, $action], 'opdo_log');
+}
+
+//======================================================================
+// SIMPLE-HISTORY
+//======================================================================
+
 add_action( 'simple_history/log/inserted', 'simple_history_function', 10, 2 );
+
+function simple_history_function($insert_id) {
+	if (array_key_exists('_message_key', $insert_id)) {
+		$payload = array(
+			'log_id' => $insert_id,
+			'site_url' => get_site_url()
+		);
+
+		// add task from the action-scheduler plugin that will be run by the action-scheduler runner
+		create_opdo_push_task(json_encode($payload), $payload['log_id']['_message_key']);
+	}
+}
+
+//======================================================================
+// WP-FORMS
+//======================================================================
 
 add_action( 'admin_init', 'wpforms_export_function' );
 add_action( 'admin_init', 'wpforms_data_list_function' );
@@ -30,25 +97,6 @@ add_action( 'admin_init', 'wpforms_handle_entry_action' );
 add_action( 'admin_init', 'wpform_data_read_payment_function' );
 add_action( 'admin_init', 'wpform_data_delete_payment_function' );
 add_action( 'wpforms_process_complete', 'wpform_data_submit_details', 10, 4 );
-add_action( 'add_option', function( $option, $value ) {
-	option_function( $option, $value, 'c', NULL );
-}, 10, 2 );
-add_action( 'update_option', function( $option, $old_value, $value ) {
-	option_function( $option, $value, 'u', $old_value );
-}, 10, 3 );
-add_action( 'deleted_option', function( $option ) {
-	option_function( $option, NULL, 'd', NULL );
-}, 10, 1 );
-
-function simple_history_function($insert_id) {
-	if (array_key_exists('_message_key', $insert_id)) {
-		$payload = array(
-			'log_id' => $insert_id,
-			'site_url' => get_site_url()
-		);
-		callOPDo(json_encode($payload), $payload['log_id']['_message_key']);
-	}
-}
 
 function wpforms_export_function() {
 	if (
@@ -75,7 +123,7 @@ function wpforms_export_function() {
 			);
 		}
 		log_on_simple_history($log_entry);
-		callOPDo( $log_entry, $action);
+		create_opdo_push_task( $log_entry, $action);
 	}
 }
 
@@ -96,7 +144,7 @@ function wpforms_data_list_function() {
 			$_GET['form_id']
 		);
 		log_on_simple_history($log_entry);
-		callOPDo( $log_entry, 'wpform_data_list_' . $type);
+		create_opdo_push_task( $log_entry, 'wpform_data_list_' . $type);
 	}
 }
 
@@ -129,7 +177,7 @@ function wpform_data_delete_payment_function() {
 		$_GET['page'] === 'wpforms-payments' &&
 		($_GET['action'] === 'delete')
 	) {
-		callOPDo( "Payment {$_GET['payment_id']} has been deleted",'wpform_data_delete_details_payment');
+		create_opdo_push_task( "Payment {$_GET['payment_id']} has been deleted",'wpform_data_delete_details_payment');
 	}
 }
 
@@ -182,6 +230,21 @@ function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
 	write_entry_log($entry, 'wpform_data_submit_details');
 }
 
+
+//======================================================================
+// WP OPTIONS
+//======================================================================
+
+add_action( 'add_option', function( $option, $value ) {
+	option_function( $option, $value, 'c', NULL );
+}, 10, 2 );
+add_action( 'update_option', function( $option, $old_value, $value ) {
+	option_function( $option, $value, 'u', $old_value );
+}, 10, 3 );
+add_action( 'deleted_option', function( $option ) {
+	option_function( $option, NULL, 'd', NULL );
+}, 10, 1 );
+
 function option_function( $option, $value, $action, $old_value ) {
 	if (str_contains($option, '_transient') || str_starts_with($option, '_') || str_starts_with($option, 'simple_history')) return;
 	$log_entry = '';
@@ -193,50 +256,19 @@ function option_function( $option, $value, $action, $old_value ) {
 		$log_entry = "Option deleted : $option";
 	}
 	log_on_simple_history($log_entry);
-	callOPDo($log_entry, $action);
+	create_opdo_push_task($log_entry, $action);
  }
 
- function log_on_simple_history($log_entry) {
-	 if (strlen($log_entry) > 250) {
-		 apply_filters('simple_history_log', substr($log_entry, 0, 250) . ' ...');
-	 } else {
-		 apply_filters('simple_history_log', $log_entry);
-	 }
- }
 
-function write_entry_log($entry, $action) {
-	$form_id = 0;
-	if ( is_object( $entry ) && isset( $entry->id ) ) {
-		$form_id = $entry->id;
-	} elseif ( is_array( $entry ) && isset( $entry['id'] ) ) {
-		$form_id = $entry['id'];
-	} elseif ( is_object( $entry ) && isset( $entry->form_id ) ) {
-		$form_id = $entry->form_id;
-	}
-	$parts = explode('_', $action);
-	$verb = $parts[2];
-	$past_map = [
-		'read'   => 'read',
-		'delete' => 'deleted',
-		'restore' => 'restored',
-		'spam' => 'marked as spam',
-		'mark-not-spam' => 'marked as not a spam',
-		'details' => 'read'
-	];
-	$log_entry = sprintf(
-		"WPForm entry has been %s for form '%s' (ID: %d): %s",
-		$past_map[$verb] ?? $verb . 'ed',
-		get_the_title( $form_id ),
-		$form_id,
-		json_encode($entry)
-	);
-	log_on_simple_history($log_entry);
-	callOPDo( $log_entry, $action);
-}
+//======================================================================
+// ACTION-SCHEDULER
+//======================================================================
 
-function callOPDo($payload, $action) {
+add_action( 'opdo_log', 'push_opdo_log', 10, 2 );
+
+function push_opdo_log($payload, $action) {
 	if ( function_exists( 'wp_get_current_user' ) ) {
-		$user = wp_get_current_user();
+		$user = wp_get_current_user(); # TODO verify the user is a "real" user and not the system
 		$url = getenv('OPDO_URL');
 
 		$data = [
@@ -277,4 +309,11 @@ function callOPDo($payload, $action) {
 
 		curl_close($ch);
 	}
+}
+
+add_action( 'action_scheduler_failed_execution', 'action_scheduler_retry_after_fail', 10, 2 );
+
+function action_scheduler_retry_after_fail() {
+	// schedule for late (x time)
+	// set status to pending
 }
