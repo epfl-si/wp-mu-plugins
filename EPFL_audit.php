@@ -311,9 +311,50 @@ function push_opdo_log($payload, $action) {
 	}
 }
 
-add_action( 'action_scheduler_failed_execution', 'action_scheduler_retry_after_fail', 10, 2 );
+/**
+ * Customize the behavior when a task fails:
+ * instead of keeping it in failed state, here we reactivate the task by
+ * setting the status to 'pending' and reschedule it for later
+ */
+add_action( 'action_scheduler_failed_execution', 'action_scheduler_opdo_log_retry_after_fail', 11, 2 );
 
-function action_scheduler_retry_after_fail() {
-	// schedule for late (x time)
-	// set status to pending
+function action_scheduler_opdo_log_retry_after_fail( $action_id, \Exception $e, $context ) {
+	global $wpdb;
+	$store  = ActionScheduler_Store::instance();
+	$action = $store->fetch_action( $action_id );
+
+	// this behavior is reserved to opdo_log task type
+	if ( $action->get_group() != "opdo_log" ) {
+		return;
+	}
+
+	// Build a new schedule date
+	$retry_delay_in_seconds = 3600;  // 1 hour
+	$reschedule_for_later   = new DateTime("+$retry_delay_in_seconds seconds");
+	$new_schedule_db_date   = as_get_datetime_object( $reschedule_for_later )->format( 'Y-m-d H:i:s' );
+
+	// Set status to pending and reschedule in DB
+	$updated = $wpdb->update(
+		$wpdb->actionscheduler_actions,
+		[
+			'status'               => ActionScheduler_Store::STATUS_PENDING,
+			'scheduled_date_gmt'   => $new_schedule_db_date,
+			'scheduled_date_local' => $new_schedule_db_date,
+		],
+		[ 'action_id' => $action_id ],
+		[ '%s' ],
+		[ '%d' ]
+	);
+
+	if ( false === $updated ) {
+		throw new \InvalidArgumentException(
+			"Unidentified action { $action_id }: we were unable to reschedule this action. It may may have been deleted by another process.",
+		);
+	}
+
+	// UNCOMMENT: if you need to add a log in the record entry
+	//	$store->log(
+	//		$action_id,
+	//		"Because it is a opdo_log and has failed, this has been rescheduled for later ({$retry_delay_in_seconds seconds})"
+	//	);
 }
