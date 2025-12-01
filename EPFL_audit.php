@@ -11,7 +11,7 @@
  * Must Use Plugin Name: EPFL Audit
  * Plugin URI:  https://github.com/epfl-si/wp-mu-plugins
  * Description: Write audit logs for wp-admin
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      ISAS-FSD
  * Author URI:  https://go.epfl.ch/idev-fsd
  * Text Domain: EPFL-Audit
@@ -46,7 +46,7 @@ function simple_history_function($insert_id) {
 			'log_id' => $insert_id,
 			'site_url' => get_site_url()
 		);
-		callOPDo(json_encode($payload), $payload['log_id']['_message_key']);
+		writeAuditLog(json_encode($payload), $payload['log_id']['_message_key']);
 	}
 }
 
@@ -75,7 +75,7 @@ function wpforms_export_function() {
 			);
 		}
 		log_on_simple_history($log_entry);
-		callOPDo( $log_entry, $action);
+		writeAuditLog( $log_entry, $action);
 	}
 }
 
@@ -96,7 +96,7 @@ function wpforms_data_list_function() {
 			$_GET['form_id']
 		);
 		log_on_simple_history($log_entry);
-		callOPDo( $log_entry, 'wpform_data_list_' . $type);
+		writeAuditLog( $log_entry, 'wpform_data_list_' . $type);
 	}
 }
 
@@ -129,7 +129,7 @@ function wpform_data_delete_payment_function() {
 		$_GET['page'] === 'wpforms-payments' &&
 		($_GET['action'] === 'delete')
 	) {
-		callOPDo( "Payment {$_GET['payment_id']} has been deleted",'wpform_data_delete_details_payment');
+		writeAuditLog( "Payment {$_GET['payment_id']} has been deleted",'wpform_data_delete_details_payment');
 	}
 }
 
@@ -193,7 +193,7 @@ function option_function( $option, $value, $action, $old_value ) {
 		$log_entry = "Option deleted : $option";
 	}
 	log_on_simple_history($log_entry);
-	callOPDo($log_entry, $action);
+	writeAuditLog($log_entry, $action);
  }
 
  function log_on_simple_history($log_entry) {
@@ -231,7 +231,7 @@ function write_entry_log($entry, $action) {
 		json_encode($entry)
 	);
 	log_on_simple_history($log_entry);
-	callOPDo( $log_entry, $action);
+	writeAuditLog( $log_entry, $action);
 }
 
 function callOPDo($payload, $action) {
@@ -276,5 +276,37 @@ function callOPDo($payload, $action) {
 		}
 
 		curl_close($ch);
+	}
+}
+
+
+function writeAuditLog($payload, $action) {
+	if ( function_exists( 'wp_get_current_user' ) ) {
+		$user = wp_get_current_user();
+		$audit_log_dir = getenv('OPDO_DIR') ?: '/wp-audit';
+
+		$data = [
+			"@timestamp" => (new DateTime())->format(DateTime::ATOM),
+			"crudt" => $action,
+			"handled_id" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+			"handler_id" => $user->user_email,
+			"source" => 'wordpress-opdo',
+			"payload" => $payload
+		];
+
+		$today_date = date("Y-m-d");
+		$hostname = gethostname();
+		$audit_log_fd = fopen(
+			"{$audit_log_dir}/{$hostname}-{$today_date}.jsonl",
+			"a"
+		);
+
+		$json_data = json_encode($data);
+		fwrite($audit_log_fd, "{$json_data}\n");
+
+		fclose($audit_log_fd);
+
+		// remove me one day
+		callOPDo( $payload, $action);
 	}
 }
