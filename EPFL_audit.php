@@ -300,6 +300,10 @@ function writeAuditLog($payload, $action) {
 			"{$audit_log_dir}/{$hostname}-{$today_date}.jsonl",
 			"a"
 		);
+		if ($audit_log_fd === FALSE) {
+			http_response_code(500);
+			die("writeAuditLog failed");
+		}
 
 		$json_data = json_encode($data);
 		fwrite($audit_log_fd, "{$json_data}\n");
