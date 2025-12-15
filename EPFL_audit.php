@@ -281,7 +281,8 @@ function callOPDo($payload, $action) {
 
 
 function writeAuditLog($payload, $action) {
-	if ( function_exists( 'wp_get_current_user' ) ) {
+	$hostname = gethostname();
+	if ( function_exists( 'wp_get_current_user' ) && str_contains($hostname, 'wp-nginx') ) {
 		$user = wp_get_current_user();
 		$audit_log_dir = getenv('OPDO_DIR') ?: '/wp-audit';
 
@@ -295,7 +296,6 @@ function writeAuditLog($payload, $action) {
 		];
 
 		$today_date = date("Y-m-d");
-		$hostname = gethostname();
 		$audit_log_fd = fopen(
 			"{$audit_log_dir}/{$hostname}-{$today_date}.jsonl",
 			"a"
