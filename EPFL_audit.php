@@ -11,7 +11,7 @@
  * Must Use Plugin Name: EPFL Audit
  * Plugin URI:  https://github.com/epfl-si/wp-mu-plugins
  * Description: Write audit logs for wp-admin
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      ISAS-FSD
  * Author URI:  https://go.epfl.ch/idev-fsd
  * Text Domain: EPFL-Audit
