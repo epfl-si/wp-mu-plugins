@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI: https://github.com/epfl-si/wp-mu-plugins/blob/master/epfl-functions.php
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.2.7
+ * Version: 1.2.8
  * Author: wwp-admin@epfl.ch
  */
 
@@ -702,3 +702,19 @@ function change_upload_dir ($uploads) {
         return $uploads;
     }
 }
+
+/**
+ * Intercepts requests to media attachment pages and forces a 404 Not Found error.
+ * By using priority 1 on the 'template_redirect' hook, this executes before
+ * WordPress's default behavior (priority 10), overriding any native redirects.
+ * This disables attachment pages across the network.
+ */
+function force_404_on_attachment_pages() {
+    if ( is_attachment() ) {
+        global $wp_query;
+        $wp_query->set_404();
+        status_header( 404 );
+        nocache_headers();
+    }
+}
+add_action( 'template_redirect', 'force_404_on_attachment_pages', 1 );
