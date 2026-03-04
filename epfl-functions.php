@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI: https://github.com/epfl-si/wp-mu-plugins/blob/master/epfl-functions.php
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.2.8
+ * Version: 1.2.9
  * Author: wwp-admin@epfl.ch
  */
 
@@ -718,3 +718,12 @@ function force_404_on_attachment_pages() {
     }
 }
 add_action( 'template_redirect', 'force_404_on_attachment_pages', 1 );
+
+/**
+ * Removes the "DearFlip Books" admin menu tab.
+ * DearFlip is used only as a PDF viewer via shortcode,
+ * so the admin interface is not necessary.
+ */
+add_action('admin_menu', function() {
+    remove_menu_page('edit.php?post_type=dflip');
+}, 999);
