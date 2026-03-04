@@ -1,0 +1,255 @@
+<?php
+/**
+ * Integration with EPFL Entra
+ *
+ * This must-use plugin ensures that the `openid-connect-generic`
+ * plug-in is configured to authenticate with Microsoft Entra.
+ *
+ * In the EPFL setup, acquiring / destroying the relevant credentials
+ * is done via a REST API hosted at app-portal.epfl.ch. For security
+ * reasons, the credentials to this REST API are *not* made available
+ * to the main (interactive) Web pods; rather, the 
+ *
+ * @link              https://app-portal.epfl.ch/
+ * @package           EFPL-MU-plugins
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Entra App Portal
+ * Plugin URI:        https://github.com/epfl-si/wp-mu-plugins
+ * Description:       Manage Entra credentials via app-portal.epfl.ch
+ * Version:           0.1.0
+ * Author:            EPFL ISAS-FSD
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       EFPL-MU-plugins
+ */
+
+namespace EPFL\AppPortal;
+
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
+
+/**
+ * Abstraction for the Entra-relevant data of this (or any) WordPress instance.
+ */
+class WordPress {
+  public $url;
+  public $tagline;
+  public $appId;
+
+  private const FRUIT = ["apple", "grapes", "kiwi", "lemon", "orange"];
+
+  public function __construct ($url, $tagline, $appId) {
+    $this->url     = $url;
+    $this->tagline = $tagline;
+    $this->appId   = $appId;
+  }
+
+  public static function this_site () {
+    return new static(
+      \site_url(), \get_bloginfo("description"),
+      @get_option("openid_connect_generic_settings")["client_id"]);
+  }
+
+  public function get_oidc_redirect_urls () {
+    $p = parse_url($this->url);
+    $hostnames = [$p["host"]];
+    if ($p["host"] === "wpn-test.epfl.ch") {
+      foreach ($this->FRUIT as $fruit) {
+        $hostnames[] = "wp-test-{$fruit}.epfl.ch";
+      }
+    }
+
+    $path = $p["path"];
+    return array_map(function ($hostname) use ($path) {
+      return "https://{$hostname}{$path}/wp-admin/admin-ajax.php?action=openid-connect-authorize";
+    }, $hostnames);
+  }
+}
+
+class AppPortalAPI {
+  private function get_api_credentials () {
+    $clientId     = getenv('ENTRA_APP_CLIENT_ID');
+    $clientSecret = getenv('ENTRA_APP_CLIENT_SECRET');
+    $tenantId     = getenv('ENTRA_APP_TENANT_ID');
+
+    if ($clientId && $clientSecret && $tenantId) {
+      return [$clientId, $clientSecret, $tenantId];
+    } else {
+      return NULL;
+    }
+  }
+
+  /**
+   * Tell whether this entire mu-plugin should be active or inactive.
+   *
+   * The intent is for the caller to ensure that this mu-plugin only
+   * be active in “offline” environments, i.e. the WordPress operator
+   * or wp-cron pods; *not* the interactive (Web server) pods.
+   *
+   * @return TRUE iff credentials to the app-portal API are available in the process environment.
+   */
+  public function is_available () {
+    return $this->get_api_credentials() !== NULL;
+  }
+
+  private $cached_token;
+
+  private function get_token () {
+    if ($this->cached_token) return $this->cached_token;
+
+    $credentials = $this->get_api_credentials();
+    if ($credentials === NULL) {
+      throw new RuntimeException("No app-portal credentials available.");
+    }
+
+    [$clientId, $clientSecret, $tenantId] = $credentials;
+    
+    $url = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
+
+    $postFields = http_build_query([
+      'client_id'     => $clientId,
+      'client_secret' => $clientSecret,
+      'scope'         => "api://{$clientId}/.default",
+      'grant_type'    => 'client_credentials',
+    ]);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_POST            => true,
+      CURLOPT_POSTFIELDS      => $postFields,
+      CURLOPT_RETURNTRANSFER  => true,
+      CURLOPT_HTTPHEADER      => [
+        'Content-Type: application/x-www-form-urlencoded',
+      ],
+    ]);
+
+    $response = curl_exec($ch);
+    if ($response === false) {
+      $error = curl_error($ch);
+      curl_close($ch);
+      throw new RuntimeException("cURL error: {$error}");
+    }
+
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpStatus < 200 || $httpStatus >= 300) {
+      throw new RuntimeException("Failed to generate token: {$httpStatus} {$response}");
+    }
+
+    $data = json_decode($response, true);
+    if (isset($data['access_token'])) {
+      $this->token = $data['access_token'];
+      return $this->token;
+    } else {
+      throw new RuntimeException("No access_token in response: {$response}");
+    }
+  }
+
+  private function make_app_portal_url ($url_suffix) {
+    $app_portal_url_base = getenv("APP_PORTAL_URL") ?: "https://app-portal.epfl.ch";
+    $slashsep = substr($url_suffix, 0, 1) == "/" ? "" : "/";
+    return "{$app_portal_url_base}{$slashsep}{$url_suffix}";
+  }
+
+  private function call_app_portal_api ($method, $url_suffix, $body_params = NULL) {
+    $token = $this->get_token();
+
+    $url = make_app_portal_url($url_suffix);
+    $ch = curl_init($url);
+
+    $curlopts = [
+      CURLOPT_RETURNTRANSFER  => true,
+      CURLOPT_HTTPHEADER      => [
+        "Content-Type: application/json",
+        "Authorization: Bearer {$token}"
+      ]
+    ];
+
+    if ($method === "GET") {
+      # Nothing
+    } elseif ($method === "POST") {
+      $curlopts[CURLOPT_POST] = true;
+    } else {
+      $curlopts[CURLOPT_CUSTOMREQUEST] = $method;
+    }
+
+    if ($body_params !== NULL) {
+      $curlopts[CURLOPT_POSTFIELDS] = json_encode($body_params);
+    }
+
+    curl_setopt_array($ch, $curlopts);
+
+    $response = curl_exec($ch);
+    if ($response === false) {
+      $error = curl_error($ch);
+      curl_close($ch);
+      throw new RuntimeException("cURL error at {$url}: {$error}");
+    }
+
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpStatus < 200 || $httpStatus >= 300) {
+      throw new RuntimeException("{$method} call to {$url} failed: {$httpStatus} {$response}");
+    }
+
+    return json_decode($response, true);
+  }
+
+  private function get_environment_id () {
+    return (getenv("ENV") === "prod") ? 3 : 2;
+  }
+
+  public function create_entra_app ($wordpress) {
+    $response = $this->call_app_portal_api("POST", "/app-portal-api/v1/portal/oidc-apps", [
+      authorizedUsers => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
+      config_desc => "WordPress site {$wordpress->url}",
+      description => "Application for site {$wordpress->tagline}",
+      environmentID => $this->get_environment_id(),
+      notes => "Entra application for WordPress site ({$wordpress->url})",
+      spa => [ redirectUris => $wordpress->get_oidc_redirect_urls() ],
+      unitID => "13030"
+    ]);
+    if (! $response["ok"]) {
+      throw new RuntimeException("create_entra_app failed: " . json_encode($response));
+    }
+
+    return $response;
+  }
+
+  public function delete_entra_app ($wordpress) {
+    $response = $this->call_app_portal_api(
+      "DELETE", "/app-portal-api/v1/portal/oidc-apps/{$wordpress->appId}");
+
+    if (! $response["ok"]) {
+      throw new RuntimeException("delete_entra_app failed: " . json_encode($response));
+    }
+
+    return $response;
+  }
+}
+
+$api = AppPortalAPI();
+
+if ($api->is_available()) {
+  add_action('activated_plugin', function ($plugin, $network_wide) {
+    if ($plugin === 'openid-connect-generic/openid-connect-generic.php') {
+      $oidc_settings = get_option("openid_connect_generic_settings");
+
+      $credentials = $api->create_entra_app(WordPress::this_site());
+      # TODO: augment $oidc_settings with $credentials
+
+      set_option("openid_connect_generic_settings", $oidc_settings);
+    }
+  }, 10, 2);
+
+  add_action('deactivated_plugin', function ($plugin, $network_wide) {
+    if ($plugin === 'openid-connect-generic/openid-connect-generic.php') {
+      $api->delete_entra_app(WordPress::this_site());
+    }
+  }, 10, 2);
+}
