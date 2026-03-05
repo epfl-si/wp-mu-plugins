@@ -71,10 +71,20 @@ class WordPress {
       $hostnames = array_merge($hostnames, $this->get_additional_test_hostnames());
     }
 
-    $path = $p["path"];
     return array_map(function ($hostname) use ($path) {
-      return "https://{$hostname}{$path}/wp-admin/admin-ajax.php?action=openid-connect-authorize";
+      return $this->get_redirect_uri($hostname);
     }, $hostnames);
+  }
+
+  public function get_redirect_uri ($hostname = NULL) {
+    $p = parse_url($this->url);
+
+    if ($hostname === NULL) {
+      $hostname = $p["host"];
+    }
+    $path = $p["path"];
+
+    return "https://{$hostname}{$path}/wp-admin/admin-ajax.php?action=openid-connect-authorize";
   }
 }
 
