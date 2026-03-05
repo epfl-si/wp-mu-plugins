@@ -252,6 +252,17 @@ class AppPortalAPI {
     return "/app-portal-api/v1/portal/oidc-apps/{$wordpress->appId}";
   }
 
+  public function read_entra_app ($wordpress) {
+    $response = $this->call_app_portal_api(
+      "GET", $this->get_relative_url_of_app($wordpress));
+
+    if (! $response["App"]) {
+      throw new RuntimeException("read_entra_app failed: " . json_encode($response));
+    }
+
+    return $response["App"];
+  }
+
   public function delete_entra_app ($wordpress) {
     $response = $this->call_app_portal_api(
       "DELETE", $this->get_relative_url_of_app($wordpress));
@@ -280,4 +291,17 @@ if ($api->is_available()) {
       $api->delete_entra_app(WordPress::this_site());
     }
   }, 10, 2);
+
+  add_action('wp_operator_post_restore', function ($unused) {
+    if (! is_plugin_active(OPENID_PLUGIN)) return;
+
+    foreach ($api->read_entra_app($this_site)["redirectURIs"] as $redirect_uri) {
+      if ($redirect_uri === $this_site->get_redirect_uri()) {
+        return;  # Restore is at same URL as before; dont't touch anything
+      }
+    }
+
+    # Restore is at new URL; need new App Portal credentials
+    $this_site->use_new_entra_app($api);
+  });
 }
