@@ -39,7 +39,18 @@ class WordPress {
   public $tagline;
   public $appId;
 
-  private const FRUIT = ["apple", "grapes", "kiwi", "lemon", "orange"];
+  private function get_additional_test_hostnames () {
+    # TODO: maybe we could find a way to plumb this down better than a constant list.
+    return [
+      "wp-test-apple.epfl.ch",
+      "wp-test-grapes.epfl.ch",
+      "wp-test-kiwi.epfl.ch",
+      "wp-test-lemon.epfl.ch",
+      "wp-test-orange.epfl.ch",
+      "wp-test-alpha.epfl.ch",
+      "wp-test-rc.epfl.ch"
+    ];
+  }
 
   public function __construct ($url, $tagline, $appId) {
     $this->url     = $url;
@@ -57,9 +68,7 @@ class WordPress {
     $p = parse_url($this->url);
     $hostnames = [$p["host"]];
     if ($p["host"] === "wpn-test.epfl.ch") {
-      foreach ($this->FRUIT as $fruit) {
-        $hostnames[] = "wp-test-{$fruit}.epfl.ch";
-      }
+      $hostnames = array_merge($hostnames, $this->get_additional_test_hostnames());
     }
 
     $path = $p["path"];
