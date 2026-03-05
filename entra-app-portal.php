@@ -89,8 +89,35 @@ class WordPress {
 
   public function use_new_entra_app ($api) {
       $oidc_settings = get_option("openid_connect_generic_settings");
-      $credentials = $api->create_entra_app();
-      # TODO: augment $oidc_settings with $credentials
+      $appId = $api->create_entra_app()["appId"];
+
+      $oidc_settings["login_type"] = "auto";
+      $oidc_settings["client_id"] = $appId;
+      $oidc_settings["client_secret"] = "";  # So-called single-page Web app
+      $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$app->tenantId}/oauth2/v2.0/authorize";
+      $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$app->tenantId}/oauth2/v2.0/token";
+      $oidc_settings["scope"] = "openid profile email {$appId}/.default";
+      $oidc_settings["endpoint_userinfo"] = "https://api.epfl.ch/v2/oidc/userinfo?groups&rights=WordPress.Editor";
+      $oidc_settings["endpoint_end_session"] = "";
+      $oidc_settings["acr_values"] = "";
+
+      $oidc_settings["no_sslverify"] = "";
+      $oidc_settings["http_request_timeout"] = "15";
+      $oidc_settings["identity_key"] = "uniqueid";
+      $oidc_settings["nickname_key"] = "gaspar";
+      $oidc_settings["email_format"] = "{email}";
+      $oidc_settings["displayname_format"] = "";
+      $oidc_settings["identify_with_username"] = "";
+      $oidc_settings["state_time_limit"] = "";
+      $oidc_settings["enforce_privacy"] = "0";
+      $oidc_settings["alternate_redirect_uri"] = "";
+      $oidc_settings["token_refresh_enable"] = "";
+      $oidc_settings["link_existing_users"] = "1";
+      $oidc_settings["create_if_does_not_exist"] = "";
+      $oidc_settings["redirect_user_back"] = "";
+      $oidc_settings["redirect_on_logout"] = "";
+      $oidc_settings["enable_logging"] = "";
+      $oidc_settings["log_limit"] = "";
 
       set_option("openid_connect_generic_settings", $oidc_settings);
   }
@@ -245,7 +272,7 @@ class AppPortalAPI {
       throw new RuntimeException("create_entra_app failed: " . json_encode($response));
     }
 
-    return $response;
+    return $response["App"];
   }
 
   private function get_relative_url_of_app ($wordpress) {
