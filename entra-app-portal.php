@@ -86,6 +86,14 @@ class WordPress {
 
     return "https://{$hostname}{$path}/wp-admin/admin-ajax.php?action=openid-connect-authorize";
   }
+
+  public function use_new_entra_app ($api) {
+      $oidc_settings = get_option("openid_connect_generic_settings");
+      $credentials = $api->create_entra_app();
+      # TODO: augment $oidc_settings with $credentials
+
+      set_option("openid_connect_generic_settings", $oidc_settings);
+  }
 }
 
 class AppPortalAPI {
@@ -262,13 +270,8 @@ define(OPENID_PLUGIN, 'openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
   add_action('activated_plugin', function ($plugin, $network_wide) {
-      $oidc_settings = get_option("openid_connect_generic_settings");
-
-      $credentials = $api->create_entra_app(WordPress::this_site());
-      # TODO: augment $oidc_settings with $credentials
-
-      set_option("openid_connect_generic_settings", $oidc_settings);
     if ($plugin === OPENID_PLUGIN) {
+      WordPress::this_site()->use_new_entra_app($api);
     }
   }, 10, 2);
 
