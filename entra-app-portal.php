@@ -302,7 +302,7 @@ class AppPortalAPI {
   }
 }
 
-$api = AppPortalAPI();
+$api = new AppPortalAPI();
 
 define(OPENID_PLUGIN, 'openid-connect-generic/openid-connect-generic.php');
 
