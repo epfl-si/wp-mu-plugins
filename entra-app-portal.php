@@ -240,9 +240,13 @@ class AppPortalAPI {
     return $response;
   }
 
+  private function get_relative_url_of_app ($wordpress) {
+    return "/app-portal-api/v1/portal/oidc-apps/{$wordpress->appId}";
+  }
+
   public function delete_entra_app ($wordpress) {
     $response = $this->call_app_portal_api(
-      "DELETE", "/app-portal-api/v1/portal/oidc-apps/{$wordpress->appId}");
+      "DELETE", $this->get_relative_url_of_app($wordpress));
 
     if (! $response["ok"]) {
       throw new RuntimeException("delete_entra_app failed: " . json_encode($response));
