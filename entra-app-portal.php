@@ -121,7 +121,7 @@ class WordPress {
       $oidc_settings["log_limit"] = "";
 
       echo "\nSetting options ...\n";
-	  set_option("openid_connect_generic_settings", $oidc_settings);
+	  update_option("openid_connect_generic_settings", $oidc_settings);
   }
 }
 
