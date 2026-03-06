@@ -88,6 +88,7 @@ class WordPress {
   }
 
   public function use_new_entra_app ($api) {
+      echo "\nCreating app ...\n";
       $oidc_settings = get_option("openid_connect_generic_settings");
       $appId = $api->create_entra_app()["appId"];
 
@@ -119,7 +120,8 @@ class WordPress {
       $oidc_settings["enable_logging"] = "";
       $oidc_settings["log_limit"] = "";
 
-      set_option("openid_connect_generic_settings", $oidc_settings);
+      echo "\nSetting options ...\n";
+	  set_option("openid_connect_generic_settings", $oidc_settings);
   }
 }
 
@@ -130,8 +132,10 @@ class AppPortalAPI {
     $tenantId     = getenv('ENTRA_APP_TENANT_ID');
 
     if ($clientId && $clientSecret && $tenantId) {
+      echo "\nSecrets are defined\n";
       return [$clientId, $clientSecret, $tenantId];
     } else {
+      echo "\nSecrets are not defined\n";
       return NULL;
     }
   }
@@ -259,6 +263,7 @@ class AppPortalAPI {
   }
 
   public function create_entra_app ($wordpress) {
+    echo "\nCreating app : calling API ...\n";
     $response = $this->call_app_portal_api("POST", "/app-portal-api/v1/portal/oidc-apps", [
       authorizedUsers => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
       config_desc => "WordPress site {$wordpress->url}",
@@ -268,10 +273,13 @@ class AppPortalAPI {
       spa => [ redirectUris => $wordpress->get_oidc_redirect_urls() ],
       unitID => "13030"
     ]);
+    echo "\nCreating app : called API ...\n";
     if (! $response["ok"]) {
+      echo "\nCreating app : called API failed\n";
       throw new RuntimeException("create_entra_app failed: " . json_encode($response));
     }
 
+    echo "\nCreating app : called API success\n";
     return $response["App"];
   }
 
@@ -307,8 +315,10 @@ $api = new AppPortalAPI();
 define('OPENID_PLUGIN', 'openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
+  echo "\nApp portal is available\n";
   add_action('activated_plugin', function ($plugin, $network_wide) {
     if ($plugin === OPENID_PLUGIN) {
+      echo "\nOPENID_PLUGIN has been activated\n";
       WordPress::this_site()->use_new_entra_app($api);
     }
   }, 10, 2);
