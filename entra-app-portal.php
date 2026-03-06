@@ -265,13 +265,13 @@ class AppPortalAPI {
   public function create_entra_app ($wordpress) {
     echo "\nCreating app : calling API ...\n";
     $response = $this->call_app_portal_api("POST", "/app-portal-api/v1/portal/oidc-apps", [
-      authorizedUsers => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
-      config_desc => "WordPress site {$wordpress->url}",
-      description => "Application for site {$wordpress->tagline}",
-      environmentID => $this->get_environment_id(),
-      notes => "Entra application for WordPress site ({$wordpress->url})",
-      spa => [ redirectUris => $wordpress->get_oidc_redirect_urls() ],
-      unitID => "13030"
+      "authorizedUsers" => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
+      "config_desc" => "WordPress site {$wordpress->url}",
+      "description" => "Application for site {$wordpress->tagline}",
+      "environmentID" => $this->get_environment_id(),
+      "notes" => "Entra application for WordPress site ({$wordpress->url})",
+      "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
+      "unitID" => "13030"
     ]);
     echo "\nCreating app : called API ...\n";
     if (! $response["ok"]) {
@@ -319,7 +319,7 @@ if ($api->is_available()) {
   add_action('activated_plugin', function ($plugin, $network_wide) {
     if ($plugin === OPENID_PLUGIN) {
       echo "\nOPENID_PLUGIN has been activated\n";
-      WordPress::this_site()->use_new_entra_app($api);
+      WordPress::this_site()->use_new_entra_app(new AppPortalAPI());
     }
   }, 10, 2);
 
