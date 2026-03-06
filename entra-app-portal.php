@@ -8,7 +8,7 @@
  * In the EPFL setup, acquiring / destroying the relevant credentials
  * is done via a REST API hosted at app-portal.epfl.ch. For security
  * reasons, the credentials to this REST API are *not* made available
- * to the main (interactive) Web pods; rather, the 
+ * to the main (interactive) Web pods; rather, the
  *
  * @link              https://app-portal.epfl.ch/
  * @package           EFPL-MU-plugins
@@ -160,7 +160,7 @@ class AppPortalAPI {
     }
 
     [$clientId, $clientSecret, $tenantId] = $credentials;
-    
+
     $url = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
 
     $postFields = http_build_query([
@@ -304,7 +304,7 @@ class AppPortalAPI {
 
 $api = new AppPortalAPI();
 
-define(OPENID_PLUGIN, 'openid-connect-generic/openid-connect-generic.php');
+define('OPENID_PLUGIN', 'openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
   add_action('activated_plugin', function ($plugin, $network_wide) {
