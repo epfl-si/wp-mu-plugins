@@ -27,7 +27,7 @@
 namespace EPFL\AppPortal;
 
 if ( ! defined( 'WPINC' ) ) {
-	die;
+    die;
 }
 
 
@@ -71,7 +71,7 @@ class WordPress {
       $hostnames = array_merge($hostnames, $this->get_additional_test_hostnames());
     }
 
-    return array_map(function ($hostname) use ($path) {
+    return array_map(function ($hostname) {
       return $this->get_redirect_uri($hostname);
     }, $hostnames);
   }
@@ -90,13 +90,13 @@ class WordPress {
   public function use_new_entra_app ($api) {
       echo "\nCreating app ...\n";
       $oidc_settings = get_option("openid_connect_generic_settings");
-      $appId = $api->create_entra_app()["appId"];
+      $appId = $api->create_entra_app($this)["appId"];
 
       $oidc_settings["login_type"] = "auto";
       $oidc_settings["client_id"] = $appId;
       $oidc_settings["client_secret"] = "";  # So-called single-page Web app
-      $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$app->tenantId}/oauth2/v2.0/authorize";
-      $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$app->tenantId}/oauth2/v2.0/token";
+      $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$appId}/oauth2/v2.0/authorize";
+      $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$appId}/oauth2/v2.0/token";
       $oidc_settings["scope"] = "openid profile email {$appId}/.default";
       $oidc_settings["endpoint_userinfo"] = "https://api.epfl.ch/v2/oidc/userinfo?groups&rights=WordPress.Editor";
       $oidc_settings["endpoint_end_session"] = "";
@@ -121,7 +121,7 @@ class WordPress {
       $oidc_settings["log_limit"] = "";
 
       echo "\nSetting options ...\n";
-	  update_option("openid_connect_generic_settings", $oidc_settings);
+      update_option("openid_connect_generic_settings", $oidc_settings);
   }
 }
 
@@ -160,7 +160,7 @@ class AppPortalAPI {
 
     $credentials = $this->get_api_credentials();
     if ($credentials === NULL) {
-      throw new RuntimeException("No app-portal credentials available.");
+      throw new \RuntimeException("No app-portal credentials available.");
     }
 
     [$clientId, $clientSecret, $tenantId] = $credentials;
@@ -188,22 +188,22 @@ class AppPortalAPI {
     if ($response === false) {
       $error = curl_error($ch);
       curl_close($ch);
-      throw new RuntimeException("cURL error: {$error}");
+      throw new \RuntimeException("cURL error: {$error}");
     }
 
     $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
     if ($httpStatus < 200 || $httpStatus >= 300) {
-      throw new RuntimeException("Failed to generate token: {$httpStatus} {$response}");
+      throw new \RuntimeException("Failed to generate token: {$httpStatus} {$response}");
     }
 
     $data = json_decode($response, true);
     if (isset($data['access_token'])) {
-      $this->token = $data['access_token'];
-      return $this->token;
+      $this->cached_token = $data['access_token'];
+      return $this->cached_token;
     } else {
-      throw new RuntimeException("No access_token in response: {$response}");
+      throw new \RuntimeException("No access_token in response: {$response}");
     }
   }
 
@@ -216,7 +216,7 @@ class AppPortalAPI {
   private function call_app_portal_api ($method, $url_suffix, $body_params = NULL) {
     $token = $this->get_token();
 
-    $url = make_app_portal_url($url_suffix);
+    $url = $this->make_app_portal_url($url_suffix);
     $ch = curl_init($url);
 
     $curlopts = [
@@ -245,14 +245,14 @@ class AppPortalAPI {
     if ($response === false) {
       $error = curl_error($ch);
       curl_close($ch);
-      throw new RuntimeException("cURL error at {$url}: {$error}");
+      throw new \RuntimeException("cURL error at {$url}: {$error}");
     }
 
     $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
     if ($httpStatus < 200 || $httpStatus >= 300) {
-      throw new RuntimeException("{$method} call to {$url} failed: {$httpStatus} {$response}");
+      throw new \RuntimeException("{$method} call to {$url} failed: {$httpStatus} {$response}");
     }
 
     return json_decode($response, true);
@@ -276,7 +276,7 @@ class AppPortalAPI {
     echo "\nCreating app : called API ...\n";
     if (! $response["ok"]) {
       echo "\nCreating app : called API failed\n";
-      throw new RuntimeException("create_entra_app failed: " . json_encode($response));
+      throw new \RuntimeException("create_entra_app failed: " . json_encode($response));
     }
 
     echo "\nCreating app : called API success\n";
@@ -292,7 +292,7 @@ class AppPortalAPI {
       "GET", $this->get_relative_url_of_app($wordpress));
 
     if (! $response["App"]) {
-      throw new RuntimeException("read_entra_app failed: " . json_encode($response));
+      throw new \RuntimeException("read_entra_app failed: " . json_encode($response));
     }
 
     return $response["App"];
@@ -303,7 +303,7 @@ class AppPortalAPI {
       "DELETE", $this->get_relative_url_of_app($wordpress));
 
     if (! $response["ok"]) {
-      throw new RuntimeException("delete_entra_app failed: " . json_encode($response));
+      throw new \RuntimeException("delete_entra_app failed: " . json_encode($response));
     }
 
     return $response;
@@ -316,22 +316,22 @@ define('OPENID_PLUGIN', 'openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
   echo "\nApp portal is available\n";
-  add_action('activated_plugin', function ($plugin, $network_wide) {
+  add_action('activated_plugin', function ($plugin, $network_wide) use ($api) {
     if ($plugin === OPENID_PLUGIN) {
       echo "\nOPENID_PLUGIN has been activated\n";
-      WordPress::this_site()->use_new_entra_app(new AppPortalAPI());
+      WordPress::this_site()->use_new_entra_app($api);
     }
   }, 10, 2);
 
-  add_action('deactivated_plugin', function ($plugin, $network_wide) {
+  add_action('deactivated_plugin', function ($plugin, $network_wide) use ($api) {
     if ($plugin === OPENID_PLUGIN) {
       $api->delete_entra_app(WordPress::this_site());
     }
   }, 10, 2);
 
-  add_action('wp_operator_post_restore', function ($unused) {
+  add_action('wp_operator_post_restore', function ($unused) use ($api) {
     if (! is_plugin_active(OPENID_PLUGIN)) return;
-
+    $this_site = WordPress::this_site();
     foreach ($api->read_entra_app($this_site)["redirectURIs"] as $redirect_uri) {
       if ($redirect_uri === $this_site->get_redirect_uri()) {
         return;  # Restore is at same URL as before; dont't touch anything
