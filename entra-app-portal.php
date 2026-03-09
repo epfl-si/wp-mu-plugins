@@ -312,7 +312,7 @@ class AppPortalAPI {
 
 $api = new AppPortalAPI();
 
-define('OPENID_PLUGIN', 'openid-connect-generic/openid-connect-generic.php');
+define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
   echo "\nApp portal is available\n";
