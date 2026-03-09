@@ -132,10 +132,10 @@ class AppPortalAPI {
     $tenantId     = getenv('ENTRA_APP_TENANT_ID');
 
     if ($clientId && $clientSecret && $tenantId) {
-      echo "\nSecrets are defined\n";
+      echo "\nENTRA-MUPLUGIN - Secrets are defined\n";
       return [$clientId, $clientSecret, $tenantId];
     } else {
-      echo "\nSecrets are not defined\n";
+      echo "\nENTRA-MUPLUGIN - Secrets are not defined\n";
       return NULL;
     }
   }
@@ -273,13 +273,7 @@ class AppPortalAPI {
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
       "unitID" => "13030"
     ]);
-    echo "\nCreating app : called API ...\n";
-    if (! $response["ok"]) {
-      echo "\nCreating app : called API failed\n";
-      throw new \RuntimeException("create_entra_app failed: " . json_encode($response));
-    }
-
-    echo "\nCreating app : called API success\n";
+    echo "\nENTRA-MUPLUGIN - App created\n";
     return $response["App"];
   }
 
@@ -315,10 +309,10 @@ $api = new AppPortalAPI();
 define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
-  echo "\nApp portal is available\n";
+  echo "\nENTRA-MUPLUGIN - App portal is available\n";
   add_action('activated_plugin', function ($plugin, $network_wide) use ($api) {
     if ($plugin === OPENID_PLUGIN) {
-      echo "\nOPENID_PLUGIN has been activated\n";
+      echo "\nENTRA-MUPLUGIN - OPENID_PLUGIN has been activated\n";
       WordPress::this_site()->use_new_entra_app($api);
     }
   }, 10, 2);
