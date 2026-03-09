@@ -263,11 +263,17 @@ class AppPortalAPI {
   }
 
   public function create_entra_app ($wordpress) {
-    echo "\nCreating app : calling API ...\n";
+    echo "\nENTRA-MUPLUGIN - Creating app : calling API ...\n";
+    $name = str_replace(".epfl.ch", "",str_replace("/", "-", str_replace("https://","",$wordpress->url)));
+    if (substr($name, -1) === "-") {
+        // Remove the last character
+        $name = substr($name, 0, -1);
+    }
     $response = $this->call_app_portal_api("POST", "/app-portal-api/v1/portal/oidc-apps", [
       "authorizedUsers" => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
       "config_desc" => "WordPress site {$wordpress->url}",
-      "description" => "Application for site {$wordpress->tagline}",
+      "description" => "Application for site" . str_replace("/","-",$wordpress->url),
+      "displayName" => "EPFL - WP ({$name})",
       "environmentID" => $this->get_environment_id(),
       "notes" => "Entra application for WordPress site ({$wordpress->url})",
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
