@@ -314,6 +314,144 @@ class AppPortalAPI {
   }
 }
 
+/**
+ * Switch to PKCE workflow if no secret has been provided : used for
+ * single page apps (SAP) configuration
+ */
+
+add_filter('openid-connect-generic-auth-url', function( $url ) {
+    $settings = get_option('openid_connect_generic_settings', array());
+    if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
+        return $url;
+    }
+
+    // Generate a random string for the code challenge
+    $code_verifier = bin2hex(random_bytes(64));
+    $hash = hash('sha256', $code_verifier, true);
+    $code_challenge = rtrim(strtr(base64_encode($hash), '+/', '-_'), '=');
+    $url.= '&code_challenge=' . $code_challenge;
+    $url .= '&code_challenge_method=S256';
+
+    $parsed = wp_parse_url($url);
+    $query  = [];
+    parse_str($parsed['query'], $query);
+    $state = $query['state'];
+
+    set_transient(
+        'epfl_oidc_pkce_' . $state,
+        $code_verifier,
+        15 * MINUTE_IN_SECONDS
+    );
+    return $url;
+});
+
+add_filter('openid-connect-generic-alter-request', function( $request, $operation ) {
+    if ( $operation != 'get-authentication-token' && $operation != 'refresh-token' ) {
+        return $request;
+    }
+    $settings = get_option('openid_connect_generic_settings', array());
+    if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
+        return $request;
+    }
+    unset($request['body']['client_secret']);
+
+    $urlparts = wp_parse_url(home_url());
+    $domain = $urlparts['host'];
+    $request['headers']['Origin'] = home_url();
+
+    $state = sanitize_text_field(wp_unslash($_GET['state']));
+    $transient_key = 'epfl_oidc_pkce_' . $state;
+    $code_verifier = get_transient( $transient_key );
+    $request['body']['code_verifier'] = $code_verifier;
+    delete_transient( $transient_key );
+    return $request;
+}, 10, 2);
+
+add_filter('openid-connect-generic-alter-request', function( $request, $operation ) {
+    if ( $operation != 'get-authentication-token' && $operation != 'refresh-token' ) {
+        return $request;
+    }
+    $settings = get_option('openid_connect_generic_settings', array());
+    if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
+        return $request;
+    }
+    unset($request['body']['client_secret']);
+
+    $urlparts = wp_parse_url(home_url());
+    $domain = $urlparts['host'];
+    $request['headers']['Origin'] = home_url();
+
+    $state = sanitize_text_field(wp_unslash($_GET['state']));
+    $transient_key = 'epfl_oidc_pkce_' . $state;
+    $code_verifier = get_transient( $transient_key );
+    $request['body']['code_verifier'] = $code_verifier;
+    delete_transient( $transient_key );
+    return $request;
+}, 10, 2);
+
+
+
+add_filter('openid-connect-generic-alter-request', function( $request, $operation ) {
+    if ( $operation != 'get-authentication-token' && $operation != 'refresh-token' ) {
+        return $request;
+    }
+    $settings = get_option('openid_connect_generic_settings', array());
+    if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
+        return $request;
+    }
+    unset($request['body']['client_secret']);
+
+    $urlparts = wp_parse_url(home_url());
+    $domain = $urlparts['host'];
+    $request['headers']['Origin'] = home_url();
+
+    $state = sanitize_text_field(wp_unslash($_GET['state']));
+    $transient_key = 'epfl_oidc_pkce_' . $state;
+    $code_verifier = get_transient( $transient_key );
+    $request['body']['code_verifier'] = $code_verifier;
+    delete_transient( $transient_key );
+    return $request;
+}, 10, 2);
+
+
+/**
+ * Add check for Accred plugin before validation OpenID login
+ * Update user data based on token
+ */
+add_filter('openid-connect-generic-user-login-test', function( $result, $user_claim ) {
+    $state = sanitize_text_field(wp_unslash($_GET['state']));
+    $access_token = get_transient( 'epfl_oidc_access_token_' . $state );
+    do_action("openid_save_user", $access_token, $user_claim);
+    delete_transient( 'epfl_oidc_access_token_' . $state );
+    return $result;
+}, 10, 2);
+
+/**
+ * Update OpenID login button text
+ */
+add_filter('openid-connect-generic-login-button-text', function( $text ) {
+    $text = __('Login EPFL');
+    return $text;
+});
+
+/**
+ * Update plugin configuration fields:
+ *
+ * - hide OpenID client secret
+ * - add field hide login form
+ *
+ */
+add_filter('openid-connect-generic-settings-fields', function( $fields ) {
+    unset($fields["client_secret"]);
+    $fields['hide_login_form'] = array(
+        'title' => __('Hide login form'),
+        'description' => __('Prevent user to log in with Wordpress user/password'),
+        'type' => 'checkbox',
+        'section' => 'authorization_settings',
+    );
+    return $fields;
+});
+
 $api = new AppPortalAPI();
 
 define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
