@@ -366,9 +366,16 @@ add_filter('openid-connect-generic-alter-request', function( $request, $operatio
     }
     unset($request['body']['client_secret']);
 
-    $urlparts = wp_parse_url(home_url());
-    $domain = $urlparts['host'];
-    $request['headers']['Origin'] = home_url();
+    if (isset($request['body']['redirect_uri']) &&
+        isset($_SERVER['HTTP_X_KONG_ORIG_HOST'])) {
+      $request['body']['redirect_uri'] = preg_replace(
+        '#^(https?://)[^/]+#',
+        '$1' . $_SERVER['HTTP_X_KONG_ORIG_HOST'],
+        $request['body']['redirect_uri']);
+    }
+
+    # Entra wants to believe that the browser is performing the query:
+    $request['headers']['Origin'] = $request['body']['redirect_uri'];
 
     $state = sanitize_text_field(wp_unslash($_GET['state']));
     $transient_key = 'epfl_oidc_pkce_' . $state;
