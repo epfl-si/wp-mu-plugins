@@ -277,7 +277,7 @@ class AppPortalAPI {
       "authorizedUsers" => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
       "config_desc" => "WordPress site {$wordpress->url}",
       "description" => "Application for site" . str_replace("/","-",$wordpress->url),
-      "displayName" => "EPFL - WP ({$name})",
+      "displayName" => "WP ({$name})",
       "environmentID" => $this->get_environment_id(),
       "notes" => "Entra application for WordPress site ({$wordpress->url})",
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
