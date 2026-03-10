@@ -129,6 +129,8 @@ class WordPress {
   }
 }
 
+class AppPortalException extends \Exception {}
+
 class AppPortalAPI {
   private function get_api_credentials () {
     $clientId     = getenv('ENTRA_APP_CLIENT_ID');
@@ -256,7 +258,8 @@ class AppPortalAPI {
     curl_close($ch);
 
     if ($httpStatus < 200 || $httpStatus >= 300) {
-      throw new \RuntimeException("{$method} call to {$url} failed: {$httpStatus} {$response}");
+      throw new AppPortalException("{$method} call to {$url} failed: {$response}",
+                                   $httpStatus);
     }
 
     return json_decode($response, true);
@@ -303,14 +306,19 @@ class AppPortalAPI {
   }
 
   public function delete_entra_app ($wordpress) {
-    $response = $this->call_app_portal_api(
-      "DELETE", $this->get_relative_url_of_app($wordpress));
+    $url = $this->get_relative_url_of_app($wordpress);
+    try {
+      $response = $this->call_app_portal_api(
+        "DELETE", $url);
 
-    if ($response["Message"] != "") {
-      throw new \RuntimeException("delete_entra_app failed: " . json_encode($response));
+      if ($response["Message"] != "") {
+        throw new \RuntimeException("delete_entra_app failed: " . json_encode($response));
+      }
+    } catch (AppPortalException $e) {
+      if ($e->getCode() == 404) {
+        error_log("WARNING: deleting {$url}: unknown in app-portal, continuing");
+      }
     }
-
-    return $response;
   }
 }
 
