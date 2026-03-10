@@ -59,9 +59,11 @@ class WordPress {
   }
 
   public static function this_site () {
+    $option = @get_option("openid_connect_generic_settings");
+    $clientId = $option ? $option["client_id"]: null;
     return new static(
       \site_url(), \get_bloginfo("description"),
-      @get_option("openid_connect_generic_settings")["client_id"]);
+      $clientId);
   }
 
   public function get_oidc_redirect_urls () {
@@ -91,12 +93,13 @@ class WordPress {
       error_log("ENTRA-MUPLUGIN - Creating app ...");
       $oidc_settings = get_option("openid_connect_generic_settings");
       $appId = $api->create_entra_app($this)["appId"];
+      $tenantId = getenv("ENTRA_APP_TENANT_ID");
 
       $oidc_settings["login_type"] = "auto";
       $oidc_settings["client_id"] = $appId;
       $oidc_settings["client_secret"] = "";  # So-called single-page Web app
-      $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$appId}/oauth2/v2.0/authorize";
-      $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$appId}/oauth2/v2.0/token";
+      $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/authorize";
+      $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
       $oidc_settings["scope"] = "openid profile email {$appId}/.default";
       $oidc_settings["endpoint_userinfo"] = "https://api.epfl.ch/v2/oidc/userinfo?groups&rights=WordPress.Editor";
       $oidc_settings["endpoint_end_session"] = "";
@@ -133,10 +136,10 @@ class AppPortalAPI {
     $tenantId     = getenv('ENTRA_APP_TENANT_ID');
 
     if ($clientId && $clientSecret && $tenantId) {
-      
+
       return [$clientId, $clientSecret, $tenantId];
     } else {
-      
+
       return NULL;
     }
   }
@@ -316,20 +319,18 @@ $api = new AppPortalAPI();
 define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
-  
+
   add_action('activated_plugin', function ($plugin, $network_wide) use ($api) {
     if ($plugin === OPENID_PLUGIN) {
-      
       WordPress::this_site()->use_new_entra_app($api);
     }
   }, 10, 2);
 
-//   add_action('deactivated_plugin', function ($plugin, $network_wide) use ($api) {
-//     if ($plugin === OPENID_PLUGIN) {
-      
-//       $api->delete_entra_app(WordPress::this_site());
-//     }
-//   }, 10, 2);
+  add_action('deactivated_plugin', function ($plugin, $network_wide) use ($api) {
+    if ($plugin === OPENID_PLUGIN) {
+      $api->delete_entra_app(WordPress::this_site());
+    }
+  }, 10, 2);
 
   add_action('wp_operator_post_restore', function ($unused) use ($api) {
     if (! is_plugin_active(OPENID_PLUGIN)) return;
