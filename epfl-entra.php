@@ -274,7 +274,7 @@ class AppPortalAPI {
         $name = substr($name, 0, -1);
     }
     $response = $this->call_app_portal_api("POST", "/app-portal-api/v1/portal/oidc-apps", [
-      "authorizedUsers" => ["AAD_All Outside EPFL Users", "AAD_All Hosts Users", "AAD_All Student Users", "AAD_All Staff Users"],
+      "authorizedUsers" => [],
       "config_desc" => "WordPress site {$wordpress->url}",
       "description" => "Application for site" . str_replace("/","-",$wordpress->url),
       "displayName" => "WP ({$name})",
