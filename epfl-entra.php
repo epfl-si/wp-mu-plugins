@@ -100,6 +100,7 @@ class WordPress {
       $oidc_settings["client_secret"] = "";  # So-called single-page Web app
       $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/authorize";
       $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
+      $oidc_settings["issuer"] = "https://login.microsoftonline.com/{$tenantId}/v2.0";
       $oidc_settings["scope"] = "openid profile email {$appId}/.default";
       $oidc_settings["endpoint_userinfo"] = "https://api.epfl.ch/v2/oidc/userinfo?groups&rights=WordPress.Editor";
       $oidc_settings["endpoint_end_session"] = "";
