@@ -88,7 +88,7 @@ class WordPress {
   }
 
   public function use_new_entra_app ($api) {
-      echo "\nCreating app ...\n";
+      error_log("ENTRA-MUPLUGIN - Creating app ...");
       $oidc_settings = get_option("openid_connect_generic_settings");
       $appId = $api->create_entra_app($this)["appId"];
 
@@ -120,8 +120,9 @@ class WordPress {
       $oidc_settings["enable_logging"] = "";
       $oidc_settings["log_limit"] = "";
 
-      echo "\nSetting options ...\n";
+      error_log("ENTRA-MUPLUGIN - Setting options ...");
       update_option("openid_connect_generic_settings", $oidc_settings);
+      error_log("ENTRA-MUPLUGIN - Done");
   }
 }
 
@@ -132,10 +133,10 @@ class AppPortalAPI {
     $tenantId     = getenv('ENTRA_APP_TENANT_ID');
 
     if ($clientId && $clientSecret && $tenantId) {
-      echo "\nENTRA-MUPLUGIN - Secrets are defined\n";
+      
       return [$clientId, $clientSecret, $tenantId];
     } else {
-      echo "\nENTRA-MUPLUGIN - Secrets are not defined\n";
+      
       return NULL;
     }
   }
@@ -263,7 +264,7 @@ class AppPortalAPI {
   }
 
   public function create_entra_app ($wordpress) {
-    echo "\nENTRA-MUPLUGIN - Creating app : calling API ...\n";
+    error_log("ENTRA-MUPLUGIN - Creating app : calling API ...");
     $name = str_replace(".epfl.ch", "",str_replace("/", "-", str_replace("https://","",$wordpress->url)));
     if (substr($name, -1) === "-") {
         // Remove the last character
@@ -279,7 +280,7 @@ class AppPortalAPI {
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
       "unitID" => "13030"
     ]);
-    echo "\nENTRA-MUPLUGIN - App created\n";
+    error_log("ENTRA-MUPLUGIN - App created");
     return $response["App"];
   }
 
@@ -315,19 +316,20 @@ $api = new AppPortalAPI();
 define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
 
 if ($api->is_available()) {
-  echo "\nENTRA-MUPLUGIN - App portal is available\n";
+  
   add_action('activated_plugin', function ($plugin, $network_wide) use ($api) {
     if ($plugin === OPENID_PLUGIN) {
-      echo "\nENTRA-MUPLUGIN - OPENID_PLUGIN has been activated\n";
+      
       WordPress::this_site()->use_new_entra_app($api);
     }
   }, 10, 2);
 
-  add_action('deactivated_plugin', function ($plugin, $network_wide) use ($api) {
-    if ($plugin === OPENID_PLUGIN) {
-      $api->delete_entra_app(WordPress::this_site());
-    }
-  }, 10, 2);
+//   add_action('deactivated_plugin', function ($plugin, $network_wide) use ($api) {
+//     if ($plugin === OPENID_PLUGIN) {
+      
+//       $api->delete_entra_app(WordPress::this_site());
+//     }
+//   }, 10, 2);
 
   add_action('wp_operator_post_restore', function ($unused) use ($api) {
     if (! is_plugin_active(OPENID_PLUGIN)) return;
