@@ -367,53 +367,6 @@ add_filter('openid-connect-generic-alter-request', function( $request, $operatio
     return $request;
 }, 10, 2);
 
-add_filter('openid-connect-generic-alter-request', function( $request, $operation ) {
-    if ( $operation != 'get-authentication-token' && $operation != 'refresh-token' ) {
-        return $request;
-    }
-    $settings = get_option('openid_connect_generic_settings', array());
-    if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
-        return $request;
-    }
-    unset($request['body']['client_secret']);
-
-    $urlparts = wp_parse_url(home_url());
-    $domain = $urlparts['host'];
-    $request['headers']['Origin'] = home_url();
-
-    $state = sanitize_text_field(wp_unslash($_GET['state']));
-    $transient_key = 'epfl_oidc_pkce_' . $state;
-    $code_verifier = get_transient( $transient_key );
-    $request['body']['code_verifier'] = $code_verifier;
-    delete_transient( $transient_key );
-    return $request;
-}, 10, 2);
-
-
-
-add_filter('openid-connect-generic-alter-request', function( $request, $operation ) {
-    if ( $operation != 'get-authentication-token' && $operation != 'refresh-token' ) {
-        return $request;
-    }
-    $settings = get_option('openid_connect_generic_settings', array());
-    if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
-        return $request;
-    }
-    unset($request['body']['client_secret']);
-
-    $urlparts = wp_parse_url(home_url());
-    $domain = $urlparts['host'];
-    $request['headers']['Origin'] = home_url();
-
-    $state = sanitize_text_field(wp_unslash($_GET['state']));
-    $transient_key = 'epfl_oidc_pkce_' . $state;
-    $code_verifier = get_transient( $transient_key );
-    $request['body']['code_verifier'] = $code_verifier;
-    delete_transient( $transient_key );
-    return $request;
-}, 10, 2);
-
-
 /**
  * Add check for Accred plugin before validation OpenID login
  * Update user data based on token
