@@ -306,7 +306,7 @@ class AppPortalAPI {
     $response = $this->call_app_portal_api(
       "DELETE", $this->get_relative_url_of_app($wordpress));
 
-    if (! $response["ok"]) {
+    if ($response["Message"] != "") {
       throw new \RuntimeException("delete_entra_app failed: " . json_encode($response));
     }
 
