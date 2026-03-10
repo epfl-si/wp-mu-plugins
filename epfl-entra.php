@@ -115,6 +115,7 @@ class WordPress {
       $oidc_settings["identify_with_username"] = "";
       $oidc_settings["state_time_limit"] = "";
       $oidc_settings["enforce_privacy"] = 0;
+      $oidc_settings["allow_internal_idp"] = 1;
       $oidc_settings["alternate_redirect_uri"] = "";
       $oidc_settings["token_refresh_enable"] = "";
       $oidc_settings["link_existing_users"] = "1";
