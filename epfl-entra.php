@@ -100,7 +100,6 @@ class WordPress {
       $oidc_settings["client_secret"] = "";  # So-called single-page Web app
       $oidc_settings["endpoint_login"] = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/authorize";
       $oidc_settings["endpoint_token"] = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
-      $oidc_settings["endpoint_jwks"] = "https://login.microsoftonline.com/{$tenantId}/discovery/v2.0/keys";
       $oidc_settings["issuer"] = "https://login.microsoftonline.com/{$tenantId}/v2.0";
       $oidc_settings["scope"] = "openid profile email {$appId}/.default";
       $oidc_settings["endpoint_userinfo"] = "https://api.epfl.ch/v2/oidc/userinfo?groups&rights=WordPress.Editor";
@@ -422,6 +421,26 @@ add_filter('openid-connect-generic-settings-fields', function( $fields ) {
     );
     return $fields;
 });
+
+/**
+ * Bugware specific to daggerhart-openid-connect-generic: disable JWKS admin_notice
+ *
+ * As we obtain OIDC credentials over a secure TLS connection, we
+ * don't need to perform extra crypto to validate them.
+ * daggerhart-openid-connect-generic insists otherwise, by means of an
+ * alarming WordPress `admin_notice`. Don't let them.
+ */
+add_action('init', function() {
+  foreach ($wp_filter['admin_notices']->callbacks as $priority => $callbacks) {
+    foreach ($callbacks as $id => $callback) {
+      if (is_array($fn) && strpos($callback['function'][1], 'jwks_required') !== false) {
+        error_log("Found it!! At priority $priority");  // XXX DONTKEEPTHIS
+        remove_action('admin_notices', $callback['function'], $priority);
+      }
+    }
+  }
+},
+  20); // i.e. after OpenID_Connect_Generic::init() returns
 
 $api = new AppPortalAPI();
 
