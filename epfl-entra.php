@@ -457,7 +457,7 @@ if ($api->is_available()) {
   }, 10, 2);
 
   add_action('deactivated_plugin', function ($plugin, $network_wide) use ($api) {
-    if ($plugin === OPENID_PLUGIN) {
+    if (FALSE !== strpos($plugin, '/openid-connect-generic.php')) {
       $api->delete_entra_app(WordPress::this_site());
     }
   }, 10, 2);
