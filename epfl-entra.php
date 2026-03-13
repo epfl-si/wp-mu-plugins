@@ -125,9 +125,9 @@ class WordPress {
       $oidc_settings["enable_logging"] = "";
       $oidc_settings["log_limit"] = "";
 
-      error_log("ENTRA-MUPLUGIN - Setting options ...");
+      error_log("ENTRA-MUPLUGIN - Setting options ... {$appId}");
       update_option("openid_connect_generic_settings", $oidc_settings);
-      error_log("ENTRA-MUPLUGIN - Done");
+      error_log("ENTRA-MUPLUGIN - Done {$appId}");
   }
 }
 
@@ -272,8 +272,8 @@ class AppPortalAPI {
   }
 
   public function create_entra_app ($wordpress) {
-    error_log("ENTRA-MUPLUGIN - Creating app : calling API ...");
     $name = str_replace(".epfl.ch", "",str_replace("/", "-", str_replace("https://","",$wordpress->url)));
+    error_log("ENTRA-MUPLUGIN - Creating app : calling API ... {$name}");
     if (substr($name, -1) === "-") {
         // Remove the last character
         $name = substr($name, 0, -1);
@@ -288,7 +288,7 @@ class AppPortalAPI {
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
       "unitID" => "13030"
     ]);
-    error_log("ENTRA-MUPLUGIN - App created");
+    error_log("ENTRA-MUPLUGIN - App created {$name}");
     return $response["App"];
   }
 
