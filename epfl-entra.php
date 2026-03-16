@@ -288,6 +288,7 @@ class AppPortalAPI {
           $name = $abbreviated;
           $segmentIndex++;
       }
+      error_log("ENTRA-MUPLUGIN - generate_site_name returns ... {$name}");
       return strtolower($name);
   }
 
