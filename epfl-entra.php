@@ -271,6 +271,26 @@ class AppPortalAPI {
     return (getenv("ENV") === "prod") ? 3 : 2;
   }
 
+  public function generate_site_name ($name) {
+      $segmentIndex = 1;
+      while (strlen($name) >= 50 && $segmentIndex < count(explode('-', $name))) {
+          $segments = explode('-', $name);
+
+          $firstPart = array_slice($segments, 0, $segmentIndex);
+          $firstPart = array_map(function ($segment) {
+              return $segment[0];
+          }, $firstPart);
+
+          $remaining = array_slice($segments, $segmentIndex);
+
+          $abbreviated = implode('-', array_merge($firstPart, $remaining));
+
+          $name = $abbreviated;
+          $segmentIndex++;
+      }
+      return strtolower($name);
+  }
+
   public function create_entra_app ($wordpress) {
     $name = str_replace(".epfl.ch", "",str_replace("/", "-", str_replace("https://","",$wordpress->url)));
     error_log("ENTRA-MUPLUGIN - Creating app : calling API ... {$name}");
@@ -282,7 +302,7 @@ class AppPortalAPI {
       "authorizedUsers" => [],
       "config_desc" => "WordPress site {$wordpress->url}",
       "description" => "Application for site" . str_replace("/","-",$wordpress->url),
-      "displayName" => "WP ({$name})",
+      "displayName" => "WP ({$this->generate_site_name($name)})",
       "environmentID" => $this->get_environment_id(),
       "notes" => "Entra application for WordPress site ({$wordpress->url})",
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
