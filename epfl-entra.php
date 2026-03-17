@@ -92,6 +92,14 @@ class WordPress {
   public function use_new_entra_app ($api) {
       error_log("ENTRA-MUPLUGIN - Creating app ...");
       $oidc_settings = get_option("openid_connect_generic_settings");
+      if (isset($oidc_settings["client_id"])) {
+          foreach ($api->read_entra_app($this)["redirectURIs"] as $redirect_uri) {
+              if ($redirect_uri === $this->get_redirect_uri()) {
+                  return;
+              }
+          }
+      }
+
       $appId = $api->create_entra_app($this)["appId"];
       $tenantId = getenv("ENTRA_APP_TENANT_ID");
 
@@ -454,15 +462,15 @@ add_filter('openid-connect-generic-settings-fields', function( $fields ) {
 add_action('init', function() {
   $wp_filter = $GLOBALS['wp_filter'];
   if ($admin_notices = @$wp_filter['admin_notices']) {
-	  foreach ($admin_notices->callbacks as $priority => $callbacks) {
-		  foreach ($callbacks as $id => $callback) {
-			  $fn = $callback['function'];
-			  if (is_array($fn) && strpos($callback['function'][1], 'jwks_required') !== false) {
-				  error_log("Found it!! At priority $priority");  // XXX DONTKEEPTHIS
-				  remove_action('admin_notices', $callback['function'], $priority);
-			  }
-		  }
-	  }
+      foreach ($admin_notices->callbacks as $priority => $callbacks) {
+          foreach ($callbacks as $id => $callback) {
+              $fn = $callback['function'];
+              if (is_array($fn) && strpos($callback['function'][1], 'jwks_required') !== false) {
+                  error_log("Found it!! At priority $priority");  // XXX DONTKEEPTHIS
+                  remove_action('admin_notices', $callback['function'], $priority);
+              }
+          }
+      }
   }
 },
   20); // i.e. after OpenID_Connect_Generic::init() returns
