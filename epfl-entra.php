@@ -95,7 +95,9 @@ class WordPress {
       if (isset($oidc_settings["client_id"])) {
           error_log("ENTRA-MUPLUGIN - client id exists ... {$oidc_settings["client_id"]}");
           error_log("ENTRA-MUPLUGIN - current redirectUri ...{$this->get_redirect_uri()}");
-          foreach ($api->read_entra_app($this)["redirectURIs"] as $redirect_uri) {
+          $app_response = $api->read_entra_app($this);
+          error_log("ENTRA-MUPLUGIN - app response ..." . json_encode($app_response));
+          foreach ($app_response["redirectUris"] as $redirect_uri) {
               error_log("ENTRA-MUPLUGIN - app portal redirectUri ...{$redirect_uri}");
               if ($redirect_uri === $this->get_redirect_uri()) {
                   error_log("ENTRA-MUPLUGIN - redirectUri confirmed ...");
@@ -500,7 +502,7 @@ if ($api->is_available()) {
   add_action('wp_operator_post_restore', function ($unused) use ($api) {
     if (! is_plugin_active(OPENID_PLUGIN)) return;
     $this_site = WordPress::this_site();
-    foreach ($api->read_entra_app($this_site)["redirectURIs"] as $redirect_uri) {
+    foreach ($api->read_entra_app($this_site)["redirectUris"] as $redirect_uri) {
       if ($redirect_uri === $this_site->get_redirect_uri()) {
         return;  # Restore is at same URL as before; dont't touch anything
       }
