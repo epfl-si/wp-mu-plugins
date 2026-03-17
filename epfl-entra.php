@@ -93,8 +93,12 @@ class WordPress {
       error_log("ENTRA-MUPLUGIN - Creating app ...");
       $oidc_settings = get_option("openid_connect_generic_settings");
       if (isset($oidc_settings["client_id"])) {
+          error_log("ENTRA-MUPLUGIN - client id exists ... {$oidc_settings["client_id"]}");
+          error_log("ENTRA-MUPLUGIN - current redirectUri ...{$this->get_redirect_uri()}");
           foreach ($api->read_entra_app($this)["redirectURIs"] as $redirect_uri) {
+              error_log("ENTRA-MUPLUGIN - app portal redirectUri ...{$redirect_uri}");
               if ($redirect_uri === $this->get_redirect_uri()) {
+                  error_log("ENTRA-MUPLUGIN - redirectUri confirmed ...");
                   return;
               }
           }
