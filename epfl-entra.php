@@ -89,23 +89,29 @@ class WordPress {
     return "https://{$hostname}{$path}/wp-admin/admin-ajax.php?action=openid-connect-authorize";
   }
 
+  public function get_app_portal_redirect_uris ($api) {
+    $app_response = $api->read_entra_app($this);
+    if (isset($app_response) and
+        isset($app_response["spa"]) and
+        isset($app_response["spa"]["redirectUris"])) {
+      return $app_response["spa"]["redirectUris"];
+    } else {
+      return NULL;
+    }
+  }
+
   public function use_new_entra_app ($api) {
       error_log("ENTRA-MUPLUGIN - Creating app ...");
       $oidc_settings = get_option("openid_connect_generic_settings");
       if (isset($oidc_settings["client_id"])) {
-          error_log("ENTRA-MUPLUGIN - client id exists ... {$oidc_settings["client_id"]}");
-          error_log("ENTRA-MUPLUGIN - current redirectUri ...{$this->get_redirect_uri()}");
-          $app_response = $api->read_entra_app($this);
-          error_log("ENTRA-MUPLUGIN - app response ..." . json_encode($app_response));
-          if (isset($app_response["spa"]) and isset( $app_response["spa"]["redirectUris"])) {
-              foreach ($app_response["spa"]["redirectUris"] as $redirect_uri) {
-                  error_log("ENTRA-MUPLUGIN - app portal redirectUri ...{$redirect_uri}");
-                  if ($redirect_uri === $this->get_redirect_uri()) {
-                      error_log("ENTRA-MUPLUGIN - redirectUri confirmed ...");
-                      return;
-                  }
-              }
+        $redirect_uris = $this->get_app_portal_redirect_uris($api) ?? [];
+        foreach ($redirect_uris as $redirect_uri) {
+          error_log("ENTRA-MUPLUGIN - app portal redirectUri ...{$redirect_uri}");
+          if ($redirect_uri === $this->get_redirect_uri()) {
+            error_log("ENTRA-MUPLUGIN - redirectUri confirmed ...");
+            return;
           }
+        }
       }
 
       $appId = $api->create_entra_app($this)["appId"];
@@ -516,16 +522,14 @@ if ($api->is_available()) {
   add_action('wp_operator_post_restore', function ($unused) use ($api) {
     if (! is_plugin_active(OPENID_PLUGIN)) return;
     $this_site = WordPress::this_site();
-      $app_response = $api->read_entra_app($this_site);
-      if (isset($app_response["spa"]) and isset( $app_response["spa"]["redirectUris"])) {
-          foreach ($app_response["spa"]["redirectUris"] as $redirect_uri) {
-              if ($redirect_uri === $this_site->get_redirect_uri()) {
-                  return;  # Restore is at same URL as before; dont't touch anything
-              }
-          }
-
-          # Restore is at new URL; need new App Portal credentials
-          $this_site->use_new_entra_app($api);
+    $redirect_uris = $this_site->get_app_portal_redirect_uris($api) || [];
+    foreach ($redirect_uris as $redirect_uri) {
+      if ($redirect_uri === $this_site->get_redirect_uri()) {
+        return;  # Restore is at same URL as before; dont't touch anything
       }
+    }
+
+    # Restore is at new URL; need new App Portal credentials
+    $this_site->use_new_entra_app($api);
   });
 }
