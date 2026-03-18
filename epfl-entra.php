@@ -282,7 +282,7 @@ class AppPortalAPI {
     curl_close($ch);
 
     if ($httpStatus < 200 || $httpStatus >= 300) {
-      throw new AppPortalException("{$method} call to {$url} failed: {$response}",
+      throw new AppPortalException("{$method} call to {$url} failed with status ${httpStatus}: {$response}",
                                    $httpStatus);
     }
 
