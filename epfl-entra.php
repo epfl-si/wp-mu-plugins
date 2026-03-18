@@ -356,6 +356,8 @@ class AppPortalAPI {
     } catch (AppPortalException $e) {
       if ($e->getCode() == 404) {
         error_log("WARNING: deleting {$url}: unknown in app-portal, continuing");
+      } else {
+        throw $e;
       }
     }
   }
