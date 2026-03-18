@@ -334,14 +334,24 @@ class AppPortalAPI {
   }
 
   public function read_entra_app ($wordpress) {
-    $response = $this->call_app_portal_api(
-      "GET", $this->get_relative_url_of_app($wordpress));
+    try {
+      $response = $this->call_app_portal_api(
+        "GET", $this->get_relative_url_of_app($wordpress));
 
-    if (! $response["App"]) {
-      throw new \RuntimeException("read_entra_app failed: " . json_encode($response));
+      if (! $response["App"]) {
+        throw new \RuntimeException("read_entra_app failed: " . json_encode($response));
+      }
+
+      return $response["App"];
+    } catch (AppPortalException $e) {
+      if ($e->getCode() == 404) {
+        $url = $this->get_relative_url_of_app($wordpress);
+        error_log("WARNING: reading {$url}: unknown in app-portal, continuing");
+        return NULL;
+      } else {
+        throw $e;
+      }
     }
-
-    return $response["App"];
   }
 
   public function delete_entra_app ($wordpress) {
