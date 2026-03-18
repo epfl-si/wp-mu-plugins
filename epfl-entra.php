@@ -381,9 +381,8 @@ class AppPortalAPI {
 
 /**
  * Switch to PKCE workflow if no secret has been provided : used for
- * single page apps (SAP) configuration
+ * single page apps (SPA) configuration
  */
-
 add_filter('openid-connect-generic-auth-url', function( $url ) {
     $settings = get_option('openid_connect_generic_settings', array());
     if (isset($settings['client_secret']) && $settings['client_secret'] !== '') {
