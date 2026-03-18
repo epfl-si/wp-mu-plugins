@@ -153,7 +153,32 @@ class WordPress {
   }
 }
 
-class AppPortalException extends \Exception {}
+class AppPortalException extends \Exception {
+  public $result;
+
+  public function __construct ($message, $code, $result) {
+    parent::__construct($message, $code);
+    $this->result = $result;
+  }
+
+  /**
+   * Workaround to https://go.epfl.ch/INC0788077
+   */
+  public function means404 () {
+      return ($this->getCode() == 404 || $this->isFaux403());
+  }
+
+  private function isFaux403 () {
+    return ($this->getCode() == 403
+            and is_array($this->result)
+            and @$this->result["Message"] == "Error getting application configuration");
+  }
+
+  public function __toString () {
+    $result = json_encode($this->result);
+    return "app-portal HTTP status {$this->getCode()}: {$result}";
+  }
+}
 
 class AppPortalAPI {
   private function get_api_credentials () {
@@ -281,12 +306,14 @@ class AppPortalAPI {
     $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
+    $payload = json_decode($response, true);
+
     if ($httpStatus < 200 || $httpStatus >= 300) {
       throw new AppPortalException("{$method} call to {$url} failed with status ${httpStatus}: {$response}",
-                                   $httpStatus);
+                                   $httpStatus, $payload ?? $response);
+    } else {
+      return $payload;
     }
-
-    return json_decode($response, true);
   }
 
   private function get_environment_id () {
@@ -350,9 +377,9 @@ class AppPortalAPI {
 
       return $response["App"];
     } catch (AppPortalException $e) {
-      if ($e->getCode() == 404) {
+      if ($e->means404()) {
         $url = $this->get_relative_url_of_app($wordpress);
-        error_log("WARNING: reading {$url}: unknown in app-portal, continuing");
+        error_log("WARNING: HTTP GET {$url}: {$e}, continuing");
         return NULL;
       } else {
         throw $e;
@@ -370,8 +397,8 @@ class AppPortalAPI {
         throw new \RuntimeException("delete_entra_app failed: " . json_encode($response));
       }
     } catch (AppPortalException $e) {
-      if ($e->getCode() == 404) {
-        error_log("WARNING: deleting {$url}: unknown in app-portal, continuing");
+      if ($e->means404()) {
+        error_log("WARNING: HTTP DELETE {$url}: {$e}, continuing");
       } else {
         throw $e;
       }
