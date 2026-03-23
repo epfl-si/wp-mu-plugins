@@ -17,7 +17,7 @@
  * Plugin Name:       Entra App Portal
  * Plugin URI:        https://github.com/epfl-si/wp-mu-plugins
  * Description:       Manage Entra credentials via app-portal.epfl.ch
- * Version:           0.1.0
+ * Version:           0.2.0
  * Author:            EPFL ISAS-FSD
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
