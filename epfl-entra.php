@@ -407,8 +407,12 @@ class AppPortalAPI {
 }
 
 /**
- * Switch to PKCE workflow if no secret has been provided : used for
- * single page apps (SPA) configuration
+ * Pretend we are a single page app (SPA)
+ *
+ * ... although really, the server is doing the OIDC key exchange.
+ *
+ * Tell daggerhart-openid-connect-generic to switch to PKCE workflow
+ * if no secret has been provided.
  */
 add_filter('openid-connect-generic-auth-url', function( $url ) {
     $settings = get_option('openid_connect_generic_settings', array());
