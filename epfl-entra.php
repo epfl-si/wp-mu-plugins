@@ -466,18 +466,6 @@ add_filter('openid-connect-generic-alter-request', function( $request, $operatio
 }, 10, 2);
 
 /**
- * Add check for Accred plugin before validation OpenID login
- * Update user data based on token
- */
-add_filter('openid-connect-generic-user-login-test', function( $result, $user_claim ) {
-    $state = sanitize_text_field(wp_unslash($_GET['state']));
-    $access_token = get_transient( 'epfl_oidc_access_token_' . $state );
-    do_action("openid_save_user", $access_token, $user_claim);
-    delete_transient( 'epfl_oidc_access_token_' . $state );
-    return $result;
-}, 10, 2);
-
-/**
  * Update OpenID login button text
  */
 add_filter('openid-connect-generic-login-button-text', function( $text ) {
