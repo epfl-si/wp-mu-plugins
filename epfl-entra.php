@@ -466,7 +466,7 @@ add_filter('openid-connect-generic-alter-request', function( $request, $operatio
 }, 10, 2);
 
 /**
- * Update OpenID login button text
+ * Update OpenID login button text on wp-login.php (when auto-login is off)
  */
 add_filter('openid-connect-generic-login-button-text', function( $text ) {
     $text = __('Login EPFL');
