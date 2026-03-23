@@ -474,16 +474,6 @@ add_filter('openid-connect-generic-login-button-text', function( $text ) {
 });
 
 /**
- * Update plugin configuration fields:
- *
- * - hide OpenID client secret
- */
-add_filter('openid-connect-generic-settings-fields', function( $fields ) {
-    unset($fields["client_secret"]);
-    return $fields;
-});
-
-/**
  * Bugware specific to daggerhart-openid-connect-generic: disable JWKS admin_notice
  *
  * As we obtain OIDC credentials over a secure TLS connection, we
