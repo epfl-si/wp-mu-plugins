@@ -477,17 +477,9 @@ add_filter('openid-connect-generic-login-button-text', function( $text ) {
  * Update plugin configuration fields:
  *
  * - hide OpenID client secret
- * - add field hide login form
- *
  */
 add_filter('openid-connect-generic-settings-fields', function( $fields ) {
     unset($fields["client_secret"]);
-    $fields['hide_login_form'] = array(
-        'title' => __('Hide login form'),
-        'description' => __('Prevent user to log in with Wordpress user/password'),
-        'type' => 'checkbox',
-        'section' => 'authorization_settings',
-    );
     return $fields;
 });
 
