@@ -440,6 +440,12 @@ add_filter('openid-connect-generic-auth-url', function( $url ) {
     return $url;
 });
 
+/**
+ * Mesh with Kong in test
+ *
+ * Alter the `redirect_uri` to land on the proper “fruit salad” flavor
+ * if the OIDC exchange initiated there.
+ */
 add_filter('openid-connect-generic-alter-request', function( $request, $operation ) {
     if ( $operation != 'get-authentication-token' && $operation != 'refresh-token' ) {
         return $request;
