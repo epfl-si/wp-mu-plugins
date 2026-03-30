@@ -305,7 +305,7 @@ class AppPortalAPI {
     $payload = json_decode($response, true);
 
     if ($httpStatus < 200 || $httpStatus >= 300) {
-      throw new AppPortalException("{$method} call to {$url} failed with status ${httpStatus}: {$response}",
+      throw new AppPortalException("{$method} call to {$url} failed with status {$httpStatus}: {$response}",
                                    $httpStatus, $payload ?? $response);
     } else {
       return $payload;
