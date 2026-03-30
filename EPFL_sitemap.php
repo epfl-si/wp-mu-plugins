@@ -31,7 +31,6 @@ function print_sitemap() {
   if (curl_errno($curl)) {
     $error_text = curl_error($curl);
   }
-  curl_close($curl);
 
   if (isset($error_text)) {
     fatal('curl_error', $error_text);

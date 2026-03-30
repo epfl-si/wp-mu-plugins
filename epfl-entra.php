@@ -242,12 +242,10 @@ class AppPortalAPI {
     $response = curl_exec($ch);
     if ($response === false) {
       $error = curl_error($ch);
-      curl_close($ch);
       throw new \RuntimeException("cURL error: {$error}");
     }
 
     $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($httpStatus < 200 || $httpStatus >= 300) {
       throw new \RuntimeException("Failed to generate token: {$httpStatus} {$response}");
@@ -299,12 +297,10 @@ class AppPortalAPI {
     $response = curl_exec($ch);
     if ($response === false) {
       $error = curl_error($ch);
-      curl_close($ch);
       throw new \RuntimeException("cURL error at {$url}: {$error}");
     }
 
     $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     $payload = json_decode($response, true);
 
