@@ -351,6 +351,15 @@ class AppPortalAPI {
       "displayName" => "WP ({$this->generate_site_name($name)})",
       "environmentID" => $this->get_environment_id(),
       "notes" => "Entra application for WordPress site ({$wordpress->url})",
+      "requiredResourceAccess" => [[
+          "resourceAppId" => "00000003-0000-0000-c000-000000000000",
+          "resourceAccess" => [
+              ["id" => "e1fe6dd8-ba31-4d61-89e7-88639da4683d", "type" => "Scope"],
+              ["id" => "37f7f235-527c-4136-accd-4a02d197296e", "type" => "Scope"],
+              ["id" => "14dad69e-099b-42c9-810b-d002981feec1", "type" => "Scope"],
+              ["id" => "64a6cdd6-aab1-4aaf-94b8-3cc8405e90d0", "type" => "Scope"],
+          ],
+      ]],
       "spa" => [ "redirectUris" => $wordpress->get_oidc_redirect_urls() ],
       "unitID" => "13030"
     ]);
