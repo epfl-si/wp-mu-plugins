@@ -13,7 +13,7 @@
  * Description: Must-use plugin that activate traces of all 'wp_remote_*' calls if the Opentelemetry modules are activated
  * Version:     1.0.0
  * Author:      ISAS-FSD
- * Author URI:  https://go.epfl.ch/idev-fsd
+ * Author URI:  https://go.epfl.ch/isas-fsd
  *
  */
 
