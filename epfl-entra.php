@@ -504,7 +504,6 @@ add_action('init', function() {
           foreach ($callbacks as $id => $callback) {
               $fn = $callback['function'];
               if (is_array($fn) && strpos($callback['function'][1], 'jwks_required') !== false) {
-                  error_log("Found it!! At priority $priority");  // XXX DONTKEEPTHIS
                   remove_action('admin_notices', $callback['function'], $priority);
               }
           }
