@@ -368,14 +368,14 @@ class AppPortalAPI {
     return $response["App"];
   }
 
-  private function get_relative_url_of_app ($wordpress) {
+  private function get_app_portal_api_base ($wordpress) {
     return "/app-portal-api/v1/portal/oidc-apps/{$wordpress->appId}";
   }
 
   public function read_entra_app ($wordpress) {
     try {
       $response = $this->call_app_portal_api(
-        "GET", $this->get_relative_url_of_app($wordpress));
+        "GET", $this->get_app_portal_api_base($wordpress));
 
       if (! $response["App"]) {
         throw new \RuntimeException("read_entra_app failed: " . json_encode($response));
@@ -384,7 +384,7 @@ class AppPortalAPI {
       return $response["App"];
     } catch (AppPortalException $e) {
       if ($e->means404()) {
-        $url = $this->get_relative_url_of_app($wordpress);
+        $url = $this->get_app_portal_api_base($wordpress);
         error_log("WARNING: HTTP GET {$url}: {$e}, continuing");
         return NULL;
       } else {
@@ -394,7 +394,7 @@ class AppPortalAPI {
   }
 
   public function delete_entra_app ($wordpress) {
-    $url = $this->get_relative_url_of_app($wordpress);
+    $url = $this->get_app_portal_api_base($wordpress);
     try {
       $response = $this->call_app_portal_api(
         "DELETE", $url);
@@ -514,9 +514,8 @@ add_action('init', function() {
 
 $api = new AppPortalAPI();
 
-define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
-
 if ($api->is_available()) {
+  define('OPENID_PLUGIN', 'daggerhart-openid-connect-generic/openid-connect-generic.php');
 
   add_action('activated_plugin', function ($plugin, $network_wide) use ($api) {
     if ($plugin === OPENID_PLUGIN) {
