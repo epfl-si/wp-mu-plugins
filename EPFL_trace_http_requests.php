@@ -11,7 +11,7 @@
  * Plugin Name: EPFL Observability - Trace HTTP Requests
  * Plugin URI:  https://github.com/epfl-si/wp-mu-plugins
  * Description: Must-use plugin that activate traces of all 'wp_remote_*' calls if the Opentelemetry modules are activated
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      ISAS-FSD
  * Author URI:  https://go.epfl.ch/isas-fsd
  *
@@ -73,11 +73,23 @@ add_action('plugins_loaded', function () {
 
 			$response = wp_remote_request( $url, $args );
 
-			if ( ! is_wp_error( $response ) ) {
+			if ( is_wp_error( $response ) ) {
+				// Convert the WP_Error $response to a PHP exception, as requested by recordException
+				$error_codes = $response->get_error_codes();
+				$error_messages = $response->get_error_messages();
+				$exception_message = sprintf(
+					'HTTP request failed: %s',
+					implode(' | ', $error_messages)
+				);
+
+				$span->recordException(
+					new \Exception($exception_message)
+				);
+				$span->setStatus(\OpenTelemetry\API\Trace\StatusCode::STATUS_ERROR);
+				$span->setAttribute('wp.error.codes', implode(',', $error_codes));
+			} else {
 				$status = wp_remote_retrieve_response_code( $response );
 				$span->setAttribute( 'http.response.status_code', $status );
-			} else {
-				$span->recordException( $response );
 			}
 
 			return $response;
