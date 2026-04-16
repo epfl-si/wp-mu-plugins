@@ -183,6 +183,9 @@ function wpform_data_submit_details( $fields, $entry, $form_data, $entry_id ) {
 }
 
 function option_function( $option, $value, $action, $old_value ) {
+	static $is_logging = false;  // Re-entrance guard
+	if ( $is_logging ) return;   // Already logging, prevent infinite loop
+
 	if (str_contains($option, '_transient') || str_starts_with($option, '_') || str_starts_with($option, 'simple_history')) return;
 	$log_entry = '';
 	if ($action == 'c') {
@@ -192,8 +195,13 @@ function option_function( $option, $value, $action, $old_value ) {
 	} else if ($action == 'd') {
 		$log_entry = "Option deleted : $option";
 	}
-	log_on_simple_history($log_entry);
-	writeAuditLog($log_entry, $action);
+	$is_logging = true;          // Lock before calling simple-history
+	try {
+		log_on_simple_history($log_entry);
+		writeAuditLog($log_entry, $action);
+	} finally {
+		$is_logging = false;     // Always unlock, even if an exception is thrown
+	}
  }
 
  function log_on_simple_history($log_entry) {
