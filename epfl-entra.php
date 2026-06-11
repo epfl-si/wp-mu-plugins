@@ -270,6 +270,7 @@ class AppPortalAPI {
     $token = $this->get_token();
 
     $url = $this->make_app_portal_url($url_suffix);
+    error_log("ENTRA-MUPLUGIN - Calling API ... {$url}");
     $ch = curl_init($url);
 
     $curlopts = [
