@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI: https://github.com/epfl-si/wp-mu-plugins/blob/master/epfl-functions.php
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.2.8
+ * Version: 1.2.9
  * Author: wwp-admin@epfl.ch
  */
 
@@ -135,14 +135,27 @@ function oikos_get_attachment_link_filter( $content, $post_id, $size, $permalink
 
 add_filter('wp_get_attachment_link', 'oikos_get_attachment_link_filter', 10, 4);
 
+function hide_status_options() {
+    $css = <<<'CSS'
+    .editor-change-status__options
+    .components-radio-control__option:has(input[value="pending"]),
 
-/*--------------------------------------------------------------
+    .editor-change-status__options
+    .components-radio-control__option:has(input[value="private"]),
 
- # Custom post types
+    .editor-change-status__options
+    .components-radio-control__option:has(input[value="future"]),
 
---------------------------------------------------------------*/
+    .editor-change-status__password-fieldset {
+        display: none !important;
+    }
+    CSS;
 
-
+    wp_register_style('statuts-restriction', false, array(), null);
+    wp_enqueue_style('statuts-restriction');
+    wp_add_inline_style('statuts-restriction', $css);
+}
+add_action( 'enqueue_block_editor_assets', 'hide_status_options' );
 
 /*--------------------------------------------------------------
 
@@ -687,6 +700,11 @@ function wp_mail_from_epfl_noreply_name( $name ) {
 }
 add_filter( 'wp_mail_from_name','wp_mail_from_epfl_noreply_name' );
 
+/**
+ * Desactivate 'Application Passwords' part in Profile
+ * https://wordpress.stackexchange.com/questions/380145/how-to-remove-or-deactivate-application-passwords-in-wordpress
+ **/
+add_filter( 'wp_is_application_passwords_available', '__return_false' );
 
 /**
  * Change the uploads path (default is wp-content/uploads)
