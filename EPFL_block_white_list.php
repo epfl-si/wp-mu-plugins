@@ -21,7 +21,6 @@ function epfl_allowed_block_types( $allowed_block_types, $block_editor_context )
         'core/heading',
         'core/image',
         'core/file',
-        'core/list',
         'core/spacer',
         'core/separator',
         'tadv/classic-paragraph');
