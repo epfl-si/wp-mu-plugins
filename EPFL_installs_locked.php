@@ -166,3 +166,12 @@ function remove_block_patterns() {
 }
 
 add_action( 'init', 'remove_block_patterns', 1);
+
+function remove_templates_for_editors( $post_templates, $theme, $post, $post_type ) {
+    if ( !current_user_can( 'administrator' ) ) {
+        return array();
+    }
+    return $post_templates;
+}
+add_filter( 'theme_templates', 'remove_templates_for_editors', 10, 4 );
+
