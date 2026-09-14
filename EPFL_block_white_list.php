@@ -143,9 +143,18 @@ function epfl_allowed_block_types( $allowed_block_types, $block_editor_context )
     }
 
     // If we're not editing a post, we all rest of allowed blocks.
-    if($block_editor_context->post->post_type != 'post')
-    {
+    $post_type = isset($block_editor_context->post->post_type) ? $block_editor_context->post->post_type : '';
+    if ($post_type !== 'post') {
         $allowed_block_types = array_merge($allowed_block_types, $rest_of_allowed_blocks);
+    }
+
+    // Allow FSE template blocks for template part editing (Site Editor)
+    // The $context->post can be a template_part post type
+    if ($post_type === 'wp_block' || $post_type === 'custom_html') {
+        // Allow FSE blocks when editing reusable blocks and custom HTML blocks
+        if (is_array($allowed_block_types)) {
+            $allowed_block_types = array_merge($allowed_block_types, EPFL_FSE_TEMPLATE_BLOCKS);
+        }
     }
 
     /* NOTE: Don't do an "array_unique()" to avoid duplicates. For an unknown reason, even if the array content seems to be correctly
