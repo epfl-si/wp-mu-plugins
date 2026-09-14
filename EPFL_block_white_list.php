@@ -1,11 +1,109 @@
 <?php
 /*
-* Plugin Name: EPFL block white list
-* Plugin URI:
-* Description: Must-use plugin for the EPFL website to define allowed blocks coming from Gutenberg or installed plugins.
-* Version: 1.1.0
-* Author: wwp-admin@epfl.ch
+ * Plugin Name: EPFL block white list
+ * Plugin URI:
+ * Description: Must-use plugin for the EPFL website to define allowed blocks coming from Gutenberg or installed plugins.
+ * Version: 1.2.0
+ * Author: wwp-admin@epfl.ch
+  */
+
+/**
+ * Blocks required for Full Site Editing (FSE) template editing.
+ * These are needed when editing template parts and templates in the Site Editor.
  */
+define('EPFL_FSE_TEMPLATE_BLOCKS', array(
+    // Layout
+    'core/group',
+    'core/columns',
+    'core/column',
+    'core/spacer',
+    'core/separator',
+    // Query and loop
+    'core/query',
+    'core/query-title',
+    'core/query-no-results',
+    'core/posts-template',
+    'core/post-template',
+    'core/post-featured-image',
+    'core/post-title',
+    'core/post-content',
+    'core/post-excerpt',
+    'core/post-date',
+    'core/post-author',
+    'core/post-terms',
+    'core/query-pagination',
+    'core/query-pagination-previous',
+    'core/query-pagination-next',
+    'core/query-pagination-numbers',
+    // Navigation
+    'core/navigation',
+    'core/navigation-link',
+    'core/navigation-submenu',
+    'core/navigation-label',
+    'core/site-title',
+    'core/site-logo',
+    'core/site-tagline',
+    // Search
+    'core/search',
+    // Comments
+    'core/comments',
+    'core/comments-title',
+    'core/comment-template',
+    'core/comment-author-name',
+    'core/comment-date',
+    'core/comment-edit-link',
+    'core/comment-reply-link',
+    'core/comment-content',
+    'core/avatar',
+    'core/comments-pagination',
+    'core/comments-pagination-numbers',
+    'core/post-comment-form',
+    // Template
+    'core/template-part',
+    // Media
+    'core/image',
+    'core/video',
+    'core/audio',
+    'core/file',
+    'core/embed',
+    // Text
+    'core/heading',
+    'core/paragraph',
+    'core/list',
+    'core/preformatted',
+    'core/verse',
+    'core/quote',
+    'core/code',
+    'core/freeform',
+    'core/html',
+    'core/table',
+    'core/details',
+    'core/more',
+    'core/page-list',
+    'core/page-list-item',
+    // Links and buttons
+    'core/buttons',
+    'core/button',
+    'core/archives',
+    'core/categories',
+    'core/latest-posts',
+    'core/latest-comments',
+    'core/read-more',
+    // Other
+    'core/shortcode',
+    'core/classic',
+    'core/freeform',
+    'core/rss',
+    'core/calendar',
+    'core/text-columns',
+    'core/social-links',
+    'core/social-link-item',
+    'core/signature',
+    'core/badge',
+    'core/term-description',
+    'core/navigation-ref',
+    'core/post-comments-form',
+));
 
 function epfl_allowed_block_types( $allowed_block_types, $block_editor_context ) {
     if ($allowed_block_types === false) {
@@ -45,9 +143,18 @@ function epfl_allowed_block_types( $allowed_block_types, $block_editor_context )
     }
 
     // If we're not editing a post, we all rest of allowed blocks.
-    if($block_editor_context->post->post_type != 'post')
-    {
+    $post_type = isset($block_editor_context->post->post_type) ? $block_editor_context->post->post_type : '';
+    if ($post_type !== 'post') {
         $allowed_block_types = array_merge($allowed_block_types, $rest_of_allowed_blocks);
+    }
+
+    // Allow FSE template blocks for template part editing (Site Editor)
+    // The $context->post can be a template_part post type
+    if ($post_type === 'wp_block' || $post_type === 'custom_html') {
+        // Allow FSE blocks when editing reusable blocks and custom HTML blocks
+        if (is_array($allowed_block_types)) {
+            $allowed_block_types = array_merge($allowed_block_types, EPFL_FSE_TEMPLATE_BLOCKS);
+        }
     }
 
     /* NOTE: Don't do an "array_unique()" to avoid duplicates. For an unknown reason, even if the array content seems to be correctly
