@@ -587,11 +587,17 @@ add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
  * /wp-json/epfl/v1/languages
  * /wp-json/epfl/v1/menus/top
  * /wp-json/wp/v2/epfl-external-menu
+ * /wp-json/wp/v2/nav_menu_items  (block theme navigation)
+ * /wp-json/wp/v2/nav_menus       (block theme navigation)
  */
 function disable_rest_api_for_unlogged_users($access) {
     if (is_user_logged_in()) { return $access; }
     if (strpos($_SERVER['REQUEST_URI'], 'wp-json/epfl') !== false) { return $access; }
     if (strpos($_SERVER['REQUEST_URI'], 'epfl-external-menu') !== false) { return $access; }
+    // Allow block theme navigation to fetch menus via REST API
+    if (strpos($_SERVER['REQUEST_URI'], 'wp-json/wp/v2/nav_menu_items') !== false) { return $access; }
+    // Allow block theme navigation to fetch menu metadata
+    if (strpos($_SERVER['REQUEST_URI'], 'wp-json/wp/v2/nav_menus') !== false) { return $access; }
 
     // Specific authorization for Search Inside crawler
     if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
