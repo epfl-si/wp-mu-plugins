@@ -270,6 +270,7 @@ class AppPortalAPI {
     $token = $this->get_token();
 
     $url = $this->make_app_portal_url($url_suffix);
+    error_log("ENTRA-MUPLUGIN - Calling API url ... {$url}");
     $ch = curl_init($url);
 
     $curlopts = [
@@ -280,6 +281,7 @@ class AppPortalAPI {
       ]
     ];
 
+    error_log("ENTRA-MUPLUGIN - Calling API method ... {$method}");
     if ($method === "GET") {
       # Nothing
     } elseif ($method === "POST") {
@@ -292,6 +294,7 @@ class AppPortalAPI {
       $curlopts[CURLOPT_POSTFIELDS] = json_encode($body_params);
     }
 
+    error_log("ENTRA-MUPLUGIN - Calling API params ... " . var_export($curlopts, true));
     curl_setopt_array($ch, $curlopts);
 
     $response = curl_exec($ch);
