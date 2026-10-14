@@ -736,3 +736,11 @@ function force_404_on_attachment_pages() {
     }
 }
 add_action( 'template_redirect', 'force_404_on_attachment_pages', 1 );
+
+add_filter('update_footer', 'admin_footer_append_build_versions', 20);
+function admin_footer_append_build_versions ($content) {
+    $build_tag = getenv('BUILD_TAG');
+    if ($build_tag === false) return $content;
+
+    return $content . ' | ' . esc_html($build_tag);
+}
