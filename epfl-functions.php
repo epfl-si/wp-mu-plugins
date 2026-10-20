@@ -3,7 +3,7 @@
  * Plugin Name: EPFL Functions
  * Plugin URI: https://github.com/epfl-si/wp-mu-plugins/blob/master/epfl-functions.php
  * Description: Must-use plugin for the EPFL website.
- * Version: 1.2.9
+ * Version: 1.3.0
  * Author: wwp-admin@epfl.ch
  */
 
@@ -587,11 +587,15 @@ add_action( 'wp_enqueue_scripts', 'remove_old_jquery_for_pdf_viewer', 9999);
  * /wp-json/epfl/v1/languages
  * /wp-json/epfl/v1/menus/top
  * /wp-json/wp/v2/epfl-external-menu
+ * /wp-json/block-finder/v1/*
+ * /wp-json/wp/v2/block-types
  */
 function disable_rest_api_for_unlogged_users($access) {
     if (is_user_logged_in()) { return $access; }
     if (strpos($_SERVER['REQUEST_URI'], 'wp-json/epfl') !== false) { return $access; }
     if (strpos($_SERVER['REQUEST_URI'], 'epfl-external-menu') !== false) { return $access; }
+    if (strpos($_SERVER['REQUEST_URI'], 'wp-json/block-finder/v1/') !== false) { return $access; }
+    if (strpos($_SERVER['REQUEST_URI'], 'wp-json/wp/v2/block-types') !== false) { return $access; }
 
     // Specific authorization for Search Inside crawler
     if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
